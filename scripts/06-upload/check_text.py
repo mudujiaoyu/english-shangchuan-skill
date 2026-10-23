@@ -112,6 +112,18 @@ def main():
                 if fn(probe):
                     hits[name].append((uid, qt, where, text[:70]))
 
+    # 完形/选词：子题必须 4 个选项、题干非空
+    cloze_bad = []
+    for uid, qt, stem, opts, sj in rows:
+        if qt not in ("完形填空", "选词填空", "短文填空", "教材语篇填空"):
+            continue
+        for s in json.loads(sj or "[]"):
+            o = s.get("options") or []
+            if len(o) != 4 or not (s.get("stem") or "").strip():
+                cloze_bad.append((uid, s.get("number"), len(o)))
+    if cloze_bad:
+        hits["完形选项异常"].extend([(u, "", f"子题{n}", f"{len(o)} 个选项") for u, n, o in cloze_bad])
+
     total = sum(len(v) for v in hits.values())
     print(f"扫描 {len(rows)} 个单元 / {texts} 段文本")
     print(f"命中 {total} 处，分 {len(hits)} 类\n")
