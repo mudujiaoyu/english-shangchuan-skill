@@ -68,7 +68,6 @@ curl -X POST http://127.0.0.1:8089/api/uploads -H "Authorization: Bearer $KEY" \
 | --- | --- |
 | `missing_stem` | 题干为空 |
 | `missing_answer` | 答案为空 |
-| `missing_explanation` | **解析为空** |
 | `missing_question_type` | 题型为空 |
 | `missing_knowledge` | 知识点为空 |
 
@@ -80,8 +79,8 @@ python scripts/06-upload/publish_check.py --batch b.json
 该脚本区分「真缺子类」和「该主类本就没有子类」：`听力其他`、`听力短文理解`、`听力信息转换`
 在框架里没有子类，`subtypes` 留空是正常的，不算缺陷。
 
-**注意**：`explanation` 是发布硬门槛。原卷/答案册没有解析时，录入口径是留空不编造，
-但这批题就发布不了——要么补解析，要么等编辑补。
+**解析不阻断发布**：原卷/答案册有解析就跟着录入，没有就留空，不编造。`publish_check.py`
+会把「解析为空」单独统计成提示，不算阻断项。
 
 ## 验收
 

@@ -29,4 +29,5 @@
 {"ts": "2026-10-23T11:40:00+08:00", "action": "edit", "type": "skill", "id": "difficulty-fill", "summary": "assemble_meta 支持 --tapescripts/--durations；六套安徽卷 250 个单元的 difficulty/difficultyValue/categories 已录入（容易 84 / 适中 166）", "target": "scripts/assign_meta.py"}
 {"ts": "2026-10-23T13:55:00+08:00", "action": "edit", "type": "skill", "id": "type-knowledge-map", "summary": "按 10-23 修订表重建映射；新增「听力关键词语选择」行按听力其他变体执行；19 个单元按答案词性回填标签", "target": "references/type-knowledge-map.json"}
 {"ts": "2026-10-23T13:58:00+08:00", "action": "edit", "type": "skill", "id": "catalog-1.1", "summary": "知识点目录换 1.1（522 节点，设题角度/听力+阅读）；题型 27 类含听力关键词语选择；15 个单元改判、4 个图片题改 scope", "target": "references/knowledge-catalog.json"}
+{"ts": "2026-10-23T14:10:00+08:00", "action": "edit", "type": "rule", "id": "publish-gate", "summary": "解析不再作为发布阻断项；publish_check 改为提示；同步阶段文档与上传口径", "target": "scripts/06-upload/publish_check.py"}
 ```

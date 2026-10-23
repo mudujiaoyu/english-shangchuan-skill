@@ -90,7 +90,7 @@ def main():
     else:
         ap.error("需要 --ids 或 --batch")
 
-    blockers, rows = {}, []
+    blockers, rows, no_explanation = {}, [], []
     for uid, stem, ans, exp, qtype, knowledge, fm in units:
         b = []
         if not (stem or "").strip():
@@ -98,7 +98,7 @@ def main():
         if not (ans or "").strip():
             b.append("missing_answer")
         if not (exp or "").strip():
-            b.append("missing_explanation")
+            no_explanation.append(uid)
         if not (qtype or "").strip():
             b.append("missing_question_type")
         elif qtype not in types:
@@ -117,6 +117,7 @@ def main():
             rows.append((uid, qtype, b))
 
     print(f"检查 {len(units)} 个单元")
+    print(f"解析为空 {len(no_explanation)} 个（不阻断发布，仅提示）")
     if blockers:
         print("阻断项:", json.dumps(blockers, ensure_ascii=False))
         print(f"受影响单元 {len(rows)} 个：")

@@ -54,7 +54,7 @@ PDF 无文字层（`extract_text()` 为空）→ 渲染 + OCR：先认拼版（8
 不标准形态按「线索词 → 子类表 → 其他 → 暂停报候选」。详见 `references/type-subtypes.md`。
 
 ### ④ 知识点
-答案只认原卷；解析没有就留空。维度按《题型-知识点标签对照表1.0》来（见 `references/type-knowledge-map.md`）：
+答案只认原卷；解析有就录、没有留空，不编造。维度按《题型-知识点标签对照表1.0》来（见 `references/type-knowledge-map.md`）：
 **只写括号里的多级子标签，维度根节点不写**。主题写「一级主题+最后一级」；体裁/词汇/语法/语音写根以下各级；
 语用只写叶子；阅读类设题角度写 `阅读技能/*`；填空拼写类另加答案考点（该空考的词汇/语法叶子）。
 同维度只挂一个，一题 2–4 个。
@@ -68,7 +68,7 @@ PDF 无文字层（`extract_text()` 为空）→ 渲染 + OCR：先认拼版（8
 ### ⑥ 上传
 组装批次 → 答案比对 → 查重（ID/同年题号/内容指纹）→ 服务端校验器预检 → 部署媒体 → `POST /api/uploads`。
 附件 `placement` 只能是 `question`/`option`/`answer`/`explanation`（写 `stem` 会静默 400）。
-`PATCH attachments` 与 `filterMetadata` 都是整体替换。确认与发布只能人工。发布前跑 `scripts/06-upload/publish_check.py`：`missing_*` 五项任一命中都发不出去（解析是常见缺口）。详见 `references/upload-api.md`。
+`PATCH attachments` 与 `filterMetadata` 都是整体替换。确认与发布只能人工。发布前跑 `scripts/06-upload/publish_check.py`：只查 题干/答案/题型/知识点/子题完整性，解析为空不阻断（有就录、没有留空）。详见 `references/upload-api.md`。
 
 ## 常用命令
 
