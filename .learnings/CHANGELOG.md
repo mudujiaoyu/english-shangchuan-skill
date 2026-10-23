@@ -49,3 +49,5 @@
 {"ts": "2026-10-23T18:10:00+08:00", "action": "fix", "type": "script", "id": "gate-existing-vs-dup", "summary": "闸门区分「ID 已在库」与「内容重复」；整批已入库时判无需再传，不再误报失败", "target": "scripts/06-upload/_gate_remote.py"}
 {"ts": "2026-10-23T18:30:00+08:00", "action": "add", "type": "script", "id": "check-structure", "summary": "新增 check_structure.py：上传前查 unit_kind/子题/材料/选项图层级；已接入 run_upload 本机并行体检", "target": "scripts/06-upload/check_structure.py"}
 {"ts": "2026-10-23T18:30:00+08:00", "action": "fix", "type": "rule", "id": "structure-immutable", "summary": "记录服务端能力边界：unit_kind 不可 PATCH、草稿不可 harness 删除；结构错误只能人工删后重传", "target": "references/stages/06-upload.md"}
+{"ts": "2026-10-23T18:35:00+08:00", "action": "fix", "type": "rule", "id": "sub-stem-no-dup", "summary": "组题子题 stem 不重复材料已有标号（用 ______ 代替「第N空」）；记录 harness 读不到草稿、PATCH 只能靠本地快照回填", "target": "references/stages/06-upload.md"}
+{"ts": "2026-10-23T18:35:00+08:00", "action": "fix", "type": "script", "id": "id-range-by-type", "summary": "build 的 ID 段位校验改为按题型固定区间（拼写/完成句子/补全对话/语音），防改版式撞号", "target": "mudu/8a-rj/build_u1_l1_final.py"}
