@@ -36,7 +36,8 @@ RANGE_RE = re.compile(r"^\s*(\d{1,3})\s*[~～\-—至]\s*(\d{1,3})\s*[:：]?\s*(
 PAIR_RE = re.compile(r"^\s*(\d{1,3})\s*[.．、]\s*(.+?)\s*$")
 LETTER_RE = re.compile(r"^[A-Ga-g]$")
 CJK_RE = re.compile(r"[\u3000-\u303f\u4e00-\u9fff\uff00-\uffef]")
-YEAR_HEAD = re.compile(r"^\s*\d{0,2}\s*(20\d{2})\s*年\s*.{0,8}(学业水平|中考|毕业学业)")
+# 与 extract_docx.py 保持一致：容忍表格单元格带出的 `/`、序号前缀
+YEAR_HEAD = re.compile(r"^\s*/?\s*\d{0,2}\s*[.．、]?\s*(20\d{2})\s*年\s*.{0,10}(学业水平|中考|毕业学业)")
 TAIL = " \t。.,;；:：!！?？\"'“”‘’"
 
 

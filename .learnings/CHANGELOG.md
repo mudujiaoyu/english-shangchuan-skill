@@ -45,3 +45,5 @@
 {"ts": "2026-10-23T17:10:00+08:00", "action": "fix", "type": "script", "id": "run-upload-media-skip", "summary": "run_upload 热路径再优化：闸门带回远端媒体清单，只传缺失文件；实测 6.9s→2.3s", "target": "scripts/06-upload/run_upload.py"}
 {"ts": "2026-10-23T17:35:00+08:00", "action": "fix", "type": "script", "id": "answers-multipaper", "summary": "extract_answers 支持多套卷合并：--year 切正文段并按表格位置过滤表格，187 冲突→0；2022-2025 复测均 0", "target": "scripts/01-extract/extract_answers.py"}
 {"ts": "2026-10-23T17:35:00+08:00", "action": "add", "type": "script", "id": "verify-seconds", "summary": "cut_audio 新增 --verify-seconds：只回读每段前 N 秒，2026 卷切分+校验 11 分钟→9 秒", "target": "scripts/02-audio/cut_audio.py"}
+{"ts": "2026-10-23T18:10:00+08:00", "action": "add", "type": "script", "id": "split-by-year", "summary": "extract_docx 新增 --split-by-year：合并卷按卷首切年、图片按年归属、index.json 记账；2026 段与人工截段逐行一致", "target": "scripts/01-extract/extract_docx.py"}
+{"ts": "2026-10-23T18:10:00+08:00", "action": "fix", "type": "script", "id": "gate-existing-vs-dup", "summary": "闸门区分「ID 已在库」与「内容重复」；整批已入库时判无需再传，不再误报失败", "target": "scripts/06-upload/_gate_remote.py"}

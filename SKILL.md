@@ -43,6 +43,7 @@ metadata:
 ### ① 解析
 docx 优先；`.doc` 用 Word COM `SaveAs2($dst, 12)`。表格逐行导出；图片在正文里留 `[IMG image5.jpeg]`
 位置标记，再用 `contact_sheet.py` 出缩略图肉眼确认归属（logo/二维码/栏目角标不算选项图）。
+**多套卷合订成一份 docx 时用 `--split-by-year`**：按卷首切年、图片按年归属，别人工截段。
 PDF 无文字层（`extract_text()` 为空）→ 渲染 + OCR：先认拼版（8 开多为 3 页或 2 页并排，页脚页码是切分锚点），
 再定栏数（试卷 1、答案册 2、正文「上表通栏+下两栏」2）。OCR 首选 RapidOCR。详见 `references/pdf-extraction.md`。
 答案册另跑 `extract_answers.py` 落 `answers.json`（**多套卷合并的答案册必须给 `--year`**，否则题号互相覆盖），供 ⑥ 的 `check_answers.py` 逐题比对。
@@ -83,6 +84,7 @@ S=~/.agents/skills/mudu-question-upload/scripts
 
 python $S/01-extract/extract_docx.py 原卷.docx 01_source/
 python $S/01-extract/contact_sheet.py 01_source/media/ --out 01_source/contact_sheet.png
+python $S/01-extract/extract_docx.py 合并卷.docx out/ --split-by-year --drop-first 1   # 多套卷合订
 python $S/01-extract/extract_answers.py --docx 答案.docx --year 2025 --out 01_source_ans/answers.json
 python $S/01-extract/pdf_extract.py --pdf 试卷.pdf --out 01_source/ --cols-per-page 1
 python $S/02-audio/extract_script.py --docx 答案.docx --year 2022 --out ts.json

@@ -29,6 +29,25 @@ python scripts/01-extract/extract_answers.py --docx 答案.docx --year 2025 --ou
 - 用 `contact_sheet.py` 把图拼成缩略图清单，逐张确认「页眉 logo / 二维码 / 栏目角标 / 装饰图」不算选项图。
 - 图片在 `word/media/`，文件名数字即文档顺序；先过滤目录条目（`endswith("/")`）。
 
+### 合并卷：一条命令按年切开
+
+教辅常把多套卷合订成一份（如「2022~2026安徽中考真题.docx」，1436 段、96 处图、85 个媒体文件）。
+人工按「1.2026年…」截段既慢又容易切错，图片还会串年份（全卷 imageN 是连续编号）：
+
+```bash
+python scripts/01-extract/extract_docx.py "2022~2026安徽中考真题.docx" out/ --split-by-year --drop-first 1
+# out/by_year/2026/正文.txt   out/by_year/2026/media/   out/by_year/index.json
+```
+
+- 按「20XX年…考试」卷首标记切段，`index.json` 记录每年的时间行号、行数、图片清单。
+- **图片按年份重新归属**：只把该年段落里 `[IMG]` 引用到的文件拷进 `by_year/<年>/media/`，
+  所以每年目录里的图就是该年自己的图，直接拿去做媒体部署。
+- `--drop-first 1` 丢掉卷首那行「N.20XX年…考试」（它在表格里）；残留的 `[/TABLE]` 会被自动清掉。
+- 卷首标记允许带 `/`、空格、序号前缀（表格单元格导出后常见 `/ 1.2026年…`）。
+- 答案册侧对应 `extract_answers.py --year`，两边用同一套年份正则。
+
+2026 实测：5 套卷切分 2 秒，2026 段 289 行 / 20 张图，与人工截段逐行一致。
+
 ## 1.2 答案册
 
 ```bash

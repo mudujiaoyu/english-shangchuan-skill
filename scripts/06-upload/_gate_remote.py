@@ -59,17 +59,19 @@ def main():
         if fp:
             prints.setdefault(fp, r["id"])
 
-    dup_hits, existing_ids = [], 0
+    # 两类「重复」性质不同，要分开报：
+    #   · ID 已在库里 = 这批已经传过/确认过（重传必然 409），不是内容重复，不该当闸门失败
+    #   · 内容指纹命中别的 ID = 真的重复录入，必须拦
+    already, content_dups = [], []
     for it in items:
         uid = it.get("id") or ""
         if uid in existing:
-            existing_ids += 1
-            dup_hits.append([uid, "ID 已存在"])
+            already.append(uid)
             continue
         fp = fingerprint(it)
         if fp and fp in prints:
-            dup_hits.append([uid, f"内容同 {prints[fp]}"])
-    dup_ok = not dup_hits
+            content_dups.append([uid, f"内容同 {prints[fp]}"])
+    dup_ok = not content_dups
 
     # 预检：只调服务端校验器，不在库上写
     fails = []
@@ -107,8 +109,10 @@ def main():
     for d in batch_dirs:
         path = f"/home/ubuntu/mudu-quiz/static/source-media/{d}"
         landed[d] = sorted(os.listdir(path)) if os.path.isdir(path) else []
-    print(json.dumps({"dup_ok": dup_ok, "dup_hits": dup_hits[:5],
-                      "preflight": fails[:8], "existing_ids": existing_ids,
+    print(json.dumps({"dup_ok": dup_ok, "dup_hits": content_dups[:5],
+                      "preflight": fails[:8], "existing_ids": len(already),
+                      "existing_ids_sample": already[:3],
+                      "all_existing": len(already) == len(items),
                       "remote_media": landed}, ensure_ascii=False))
 
 

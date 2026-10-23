@@ -214,9 +214,15 @@ def main():
         except Exception:                                    # noqa: BLE001
             print("  ✗ 结果解析失败:", out[-300:])
             return 2
-        print(f"  查重: {'✓ 无重复' if res['dup_ok'] else '✗ ' + str(res['dup_hits'][:3])}")
+        print(f"  查重: {'✓ 无重复' if res['dup_ok'] else '✗ 内容重复 ' + str(res['dup_hits'][:3])}")
         print(f"  预检: {'✓ 通过' if not res['preflight'] else '✗ ' + str(res['preflight'][:3])}")
-        print(f"  库内同 ID: {res['existing_ids']} 个" + ("（同批重传会 409）" if res["existing_ids"] else ""))
+        n_exist = res['existing_ids']
+        if n_exist:
+            scope = '整批' if res.get('all_existing') else '部分'
+            print(f"  ID 已在库: {n_exist} 个（{scope}已传过 → 重传会 409）")
+            if res.get('all_existing'):
+                print('    这批无需再传；要改内容请 PATCH 现有草稿，不要重复 POST')
+                failed.append("整批已入库")
         remote_media = res.get("remote_media") or {}
         if not res["dup_ok"] or res["preflight"]:
             failed.append("服务器闸门")
