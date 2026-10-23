@@ -55,6 +55,21 @@ python scripts/verify_package.py --run
 
 校验阶段文档、共享参考、脚本编译，并跑 `find_kp` / `check_tags` / `assign_meta` / `check_duplicates` 四组 smoke test。
 
+## 同步到本机技能目录
+
+以**仓库为唯一源**：改完仓库执行一次，技能目录即为最新，并自动跑自检。
+
+```bash
+python sync_skill.py                # 复制（默认，技能目录独立，推荐）
+python sync_skill.py --mode link    # 建立目录联接，改仓库立即生效
+python sync_skill.py --skip-verify  # 只同步不跑自检
+```
+
+- 目标默认 `~/.agents/skills/mudu-question-upload`，可用 `--dest` 覆盖。
+- `--mode link` 会把技能目录换成指向仓库的 junction/symlink，**仓库别移动或删除**，否则技能失效；
+  想恢复独立副本，再跑一次 `python sync_skill.py` 即可。
+- 同步会跳过 `.git`、`__pycache__`、`*.pyc`。
+
 ## 边界
 
 Harness 只能：读目录、`POST /api/uploads`、`PATCH /api/questions/{id}`（仅草稿）、提知识点建议、导出。
