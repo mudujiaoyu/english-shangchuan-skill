@@ -514,3 +514,13 @@
 | 根因 | 我按「阅读材料图挂单元」的先例处理，但这张图是**某一小题的配图**，不是全篇材料图 |
 | 处置 | 移到 `subquestions[3].attachments`（`placement=question`）；`selectionSubquestionMarkup` 会调 `mediaMarkup(question,'question',…)` 渲染在该小题题干之后、选项之前 |
 | 预防 | constraints.md D13/C13：属于某小题的配图挂该子题，全篇材料图挂单元 |
+
+
+## 53. 原卷材料是表格，压成纯文本丢了结构
+
+| 项 | 内容 |
+| --- | --- |
+| 现象 | 第四课时「教材语篇回顾」原卷是 3 列 × 6 行表格（日期列与天气列纵向合并），我按纯文本 + 子弹点录入，编辑要求「按 Word 给的表格形式呈现」 |
+| 根因 | `extract_docx.py` 把表格展开成 `a \| b \| c` 逐行文本，**合并关系丢失**；我图省事直接沿用展开结果，没回头还原 |
+| 处置 | `materialBlocks` 写 `type=table` + `variant=""`，用 `rowspan` 表达「The first day（17 July）」跨 3 行、`colspan` 表达标题跨 3 列；`material` 保留平铺文本作兜底 |
+| 预防 | constraints.md E5–E8 与 01-extract「表格：提取时要留住结构」：判断依据是**原卷是不是真表格**，不是「文字读起来像不像列表」；判断不了就回 docx 数合并关系 |

@@ -93,6 +93,10 @@
 | E2 | 页眉 logo / 二维码 / 栏目装饰条（`A 基础巩固`、`B 能力提升`、`语法导图`、`考点小结`、`时文阅读`）/ 分隔线**都不算选项图，不要挂** | 口径 | 题卡里混入装饰图 |
 | E3 | 材料整张是图时（如广告海报），`material` 只写 `（材料见附图）`，**不要再转录一遍正文** | 口径（编辑：直接显示图） | 同一材料出现两遍 |
 | E4 | 部署前先做「批次引用的媒体 vs 本地 `media_upload/`」差集自检 | 实测（2026 卷漏拷 `img-read-d.jpeg`） | 上传后 URL 404 |
+| E5 | **原卷材料是表格时（教材语篇回顾、听力信息转换、表格类写作提示）必须用 `materialBlocks` 的 `type=table` 还原，不要压成纯文本** | 口径（编辑：要按 Word 给的表格形式） | 三栏结构（日期/天气/活动）压扁成子弹点，信息关系丢失 |
+| E6 | `materialBlocks` 单元格支持 `colspan`/`rowspan`（1–8），纵向合并的栏目用 `rowspan` 表达 | 服务端 `normalize_material_blocks` | 合并格拆成重复文字 |
+| E7 | `variant` 取 `""`（通用）/`information-conversion`（听力信息转换）/`poster`（海报）；别给普通表格套 poster | 服务端 | 样式不对 |
+| E8 | 用了 `materialBlocks` 仍要保留 `material` 纯文本兜底：前端是 `blocks \|\| fallback`，但搜索/复制/降级都靠它 | 实测 | 无 blocks 时材料为空 |
 
 ## G. 输入源特有的约束
 

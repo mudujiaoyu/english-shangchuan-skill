@@ -31,6 +31,17 @@ python scripts/01-extract/extract_answers.py --docx 答案.docx --year 2025 --ou
 - 用 `contact_sheet.py` 把图拼成缩略图清单，逐张确认「页眉 logo / 二维码 / 栏目角标 / 装饰图」不算选项图。
 - 图片在 `word/media/`，文件名数字即文档顺序；先过滤目录条目（`endswith("/")`）。
 
+### 表格：提取时要留住结构
+
+`extract_docx.py` 把表格展开成 `[TABLE i rows=x cols=y]` + 逐行 `a | b | c`，**合并信息就丢了**。
+遇到下面这类材料要回头数原始 docx 的合并关系，入库时用 `materialBlocks` 还原：
+
+- 教材语篇回顾 / 听力信息转换：日期（或人物）列纵向合并、天气（或类别）列同步合并
+- 表格类写作提示：要点分栏
+
+`materialBlocks` 的写法见 constraints.md E5–E8；判断依据是「原卷是不是真的表格」，
+不是「文字读起来像不像列表」。
+
 ### 合并卷：一条命令按年切开
 
 教辅常把多套卷合订成一份（如「2022~2026安徽中考真题.docx」，1436 段、96 处图、85 个媒体文件）。

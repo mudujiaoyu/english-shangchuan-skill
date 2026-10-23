@@ -53,3 +53,4 @@
 {"ts": "2026-10-23T18:35:00+08:00", "action": "fix", "type": "script", "id": "id-range-by-type", "summary": "build 的 ID 段位校验改为按题型固定区间（拼写/完成句子/补全对话/语音），防改版式撞号", "target": "mudu/8a-rj/build_u1_l1_final.py"}
 {"ts": "2026-10-23T19:10:00+08:00", "action": "fix", "type": "script", "id": "check-text-fill-in", "summary": "check_text 只对完形填空校验 4 选项；选词/短文/教材语篇属填空类无选项（原报 34 处假阳性）", "target": "scripts/06-upload/check_text.py"}
 {"ts": "2026-10-23T19:10:00+08:00", "action": "add", "type": "rule", "id": "sub-stem-three-forms", "summary": "组题子题 stem 三种写法：带选项写题号/无选项用 ______/小题配图挂子题；补各题型允许维度清单", "target": "references/constraints.md"}
+{"ts": "2026-10-23T19:30:00+08:00", "action": "add", "type": "rule", "id": "table-material-blocks", "summary": "原卷材料是表格时用 materialBlocks 的 type=table 还原（colspan/rowspan），不压成纯文本；约束总表补 E5-E8 与 01-extract 表格小节", "target": "references/constraints.md"}
