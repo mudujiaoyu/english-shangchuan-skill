@@ -64,6 +64,10 @@ python scripts/extract_docx.py "<原卷.docx>" "<输出目录>"
   `$w.Documents.Open($src); $doc.SaveAs2($dst, 12)`（**用 `SaveAs2`，`SaveAs([ref]…)` 在 PowerShell 会报错**）。
 - **`.pdf` 无文本库**时优先找同目录 docx；实在只有 PDF 且是扫描件 → 停下问用户要 Word 版。
 - 表格要逐行导出，不能只留文字（信息转换题要用）。
+- **PDF 无文字层**（`extract_text()` 返回 0 字，正文被转曲）：用 `scripts/pdf_extract.py` 走
+  渲染 → 分栏 → OCR → 切图。**先看拼版**：8 开多是「3 页并排」或「2 页并排」，用页脚页码切页，
+  再用 `--cols-per-page` 指定每页栏数（试卷 1、答案册 2、正文 2），不要靠算法猜。
+  细节与限制见 `references/pdf-extraction.md`。**同级有 Word 时优先 Word**，PDF 只做版面校对。
 
 ## 4. 图片
 
@@ -337,6 +341,7 @@ curl -X POST http://127.0.0.1:8089/api/uploads \
 | `scripts/fill_subtags.py` | 给空的子题补标签（阅读按设问、其余继承组级） | `--list` → `--apply`，语法选择用 `--map` |
 | `scripts/spell_pos.py` | 单词拼写按答案词性细分 | `--list` → `--map pos.json --apply` |
 | `scripts/retag_drafts.py` | 已入库草稿按题型规则重打（禁标纠正 + 维度兜底） | `--ids AH-2020 --apply` |
+| `scripts/pdf_extract.py` | 无文字层 PDF → 分栏文本 + 选项图/表格切图 + 题号归集 | `--pdf x.pdf --out out/ --cols-per-page 1` |
 | `scripts/check_duplicates.py` | 上传前查重（ID / 同题号 / 内容指纹），有重复退出码 1 | `python check_duplicates.py --batch b.json` |
 | `scripts/preflight_check.py` | **上传前用服务端校验器回放整批**，`--insert` 还会在库副本上模拟确认写入 | `python preflight_check.py --batch b.json --insert` |
 | `scripts/cut_audio.py` | 停顿分层 / 转写 / 按锚点切段 / 去试音 / 回读验证 | `--report` → `--transcribe` → `--anchors ... --intro-end ... --out dir --verify` |

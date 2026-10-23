@@ -24,4 +24,5 @@
 {"ts": "2026-10-22T21:05:00+08:00", "action": "edit", "type": "skill", "id": "v-final", "summary": "技能收尾：§7 重写为 7.1–7.8（词分类详细匹配、拼写按答案倒推、关联表维护）；新增 spell_pos.py / fill_subtags.py；流程与脚本清单同步", "target": "SKILL.md"}
 {"ts": "2026-10-22T22:05:00+08:00", "action": "add", "type": "script", "id": "preflight-check", "summary": "新增 preflight_check.py：上传前用服务端校验器回放整批并在库副本模拟确认写入；SKILL §11 增第 12 条", "target": "scripts/preflight_check.py"}
 {"ts": "2026-10-23T09:35:00+08:00", "action": "edit", "type": "skill", "id": "subtypes", "summary": "§6 重写为主类+子类两级匹配；新增 references/type-subtypes.md；preflight 增加子类校验；补 2021/2022 的 subtypes", "target": "references/type-subtypes.md"}
+{"ts": "2026-10-23T10:40:00+08:00", "action": "add", "type": "script", "id": "pdf-extract", "summary": "新增 pdf_extract.py：无文字层 PDF 的渲染/分页分栏/OCR(RapidOCR)/选项图与表格切分/题号归集；补 references/pdf-extraction.md", "target": "scripts/pdf_extract.py"}
 ```
