@@ -10,7 +10,7 @@
 
 ## 3.1 两级匹配
 
-1. **主类**：只能取 `filter-framework.json` 的 26 个主类（`http://127.0.0.1:8089/filter-framework.json`）。
+1. **主类**：只能取 `filter-framework.json` 的 27 个主类（`http://127.0.0.1:8089/filter-framework.json`）。
 2. **子类**：在该主类的 `subtypes` 里逐条比对判定线索，见 `references/type-subtypes.md`。
 
 子类决定筛选能不能命中：**漏写 `subtypes`，这题在按子类筛选时会消失**。

@@ -1,6 +1,6 @@
 ---
 name: mudu-question-upload
-description: 木牍教育英语题库录入全流程。从原卷（docx/pdf）提取、听力切段、题型与子类映射、答案与知识点打标、难度与分类评估，到查重预检与批次上传。含 26 个固定题型、知识点目录、developer.md 接口约束与各阶段脚本。
+description: 木牍教育英语题库录入全流程。从原卷（docx/pdf）提取、听力切段、题型与子类映射、答案与知识点打标、难度与分类评估，到查重预检与批次上传。含 27 个固定题型、知识点目录、developer.md 接口约束与各阶段脚本。
 metadata:
   category: workflow
   subject: english
@@ -50,7 +50,7 @@ PDF 无文字层（`extract_text()` 为空）→ 渲染 + OCR：先认拼版（8
 逐段回读校验（全中才算过）。转写时间戳不可信。详见 `references/audio-splitting.md`。
 
 ### ③ 题型
-只能取 26 个主类，子类只能取框架里列出的值；漏 `subtypes` 会导致按子类筛选查不到。
+只能取 27 个主类，子类只能取框架里列出的值；漏 `subtypes` 会导致按子类筛选查不到。
 不标准形态按「线索词 → 子类表 → 其他 → 暂停报候选」。详见 `references/type-subtypes.md`。
 
 ### ④ 知识点

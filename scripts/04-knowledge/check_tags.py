@@ -102,7 +102,7 @@ def main():
 
     by_type = json.load(open(MAP, encoding="utf-8"))["by_type"]
     # 对照表给出的「可考维度」＝允许范围；不在范围内的标签判为越界
-    allowed = {}
+    allowed, scopes = {}, {}
     for qt, cfg in by_type.items():
         branches = set()
         for d in cfg.get("dims", []):
@@ -111,10 +111,14 @@ def main():
                 branches.update({"词汇", "语法"})
             else:
                 branches.add(b)
-        for v in cfg.get("variants", []):
-            for d in v.get("dims", []):
-                branches.update({"词汇", "语法"} if d["branch"] == "词汇/语法" else {d["branch"]})
+        scoped = {}
+        for d in cfg.get("dims", []):
+            if d.get("scope"):
+                scoped[d["branch"]] = d["scope"]
         allowed[qt] = branches
+        scopes[qt] = scoped
+    # 情景反应的应答语题挂在听力其他下，表里没有对应维度，放行语用
+    allowed.setdefault("听力其他", set()).add("语用")
     rows = fetch(prefix)
     empty, forbidden, coarse = [], [], defaultdict(list)
     out_of_scope = []
@@ -131,6 +135,10 @@ def main():
             for p in cur:
                 root = p.split("/")[0]
                 if root not in ok_branches:
+                    out_of_scope.append((uid, qtype, p))
+                    continue
+                need_scope = (scopes.get(qtype) or {}).get(root)
+                if need_scope and not p.startswith(f"{root}/{need_scope}"):
                     out_of_scope.append((uid, qtype, p))
         for p in cur:
             if any(p.startswith(b) for b in FORBIDDEN.get(qtype, ())):
