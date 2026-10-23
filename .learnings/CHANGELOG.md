@@ -31,4 +31,5 @@
 {"ts": "2026-10-23T13:58:00+08:00", "action": "edit", "type": "skill", "id": "catalog-1.1", "summary": "知识点目录换 1.1（522 节点，设题角度/听力+阅读）；题型 27 类含听力关键词语选择；15 个单元改判、4 个图片题改 scope", "target": "references/knowledge-catalog.json"}
 {"ts": "2026-10-23T14:10:00+08:00", "action": "edit", "type": "rule", "id": "publish-gate", "summary": "解析不再作为发布阻断项；publish_check 改为提示；同步阶段文档与上传口径", "target": "scripts/06-upload/publish_check.py"}
 {"ts": "2026-10-23T14:35:00+08:00", "action": "edit", "type": "script", "id": "publish-check", "summary": "publish_check 补齐组题两项校验；250 个安徽单元经服务端真实 publish_blockers 复测 0 阻断", "target": "scripts/06-upload/publish_check.py"}
+{"ts": "2026-10-23T14:40:00+08:00", "action": "fix", "type": "rule", "id": "difficulty-label", "summary": "difficulty 统一为 容易/适中/困难；61 条旧短码归一，16 条补 difficultyValue；publish_check 提示非标准写法", "target": "references/difficulty-category.json"}
 ```

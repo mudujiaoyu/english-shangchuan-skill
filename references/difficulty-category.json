@@ -2,9 +2,9 @@
   "_comment": "难度/分类录入规则。依据 developer.md：difficulty 取 易/中/难（编辑最终确认）；filterMetadata.categories 取 优选题/易错题；difficultyValue 0~1（>=0.8 容易、>=0.5 适中、其余困难）。文档 L332 明确「未知值留空，不要根据题型猜造标注」，所以这里按可观测特征打分并输出依据，类型只作微调先验。",
   "doc_constraints": {
     "difficulty_field": [
-      "易",
-      "中",
-      "难"
+      "容易",
+      "适中",
+      "困难"
     ],
     "categories": [
       "优选题",
@@ -15,7 +15,8 @@
       "适中": 0.5
     },
     "no_guessing": "特征不足时留空（difficultyValue=null），列入待编辑清单，不按题型硬填。",
-    "patch_replaces": "PATCH filterMetadata 整体替换，补标签必须先读原值再合并。"
+    "patch_replaces": "PATCH filterMetadata 整体替换，补标签必须先读原值再合并。",
+    "label_style": "写入 difficulty 时统一用 容易/适中/困难，不要写 易/中/难（服务端筛选标签只有前三个）"
   },
   "feature_scoring": {
     "start": 0.75,

@@ -57,7 +57,7 @@ import sqlite3, json
 con = sqlite3.connect("file:/home/ubuntu/mudu-quiz/data/mudu.sqlite3?mode=ro", uri=True)
 rows = [list(r) for r in con.execute(
   "select questions.unit_id, stem, answer, explanation, question_type, knowledge_json, filter_metadata_json, "
-  "unit_kind, material, subquestions_json from questions join question_units "
+  "unit_kind, material, subquestions_json, questions.difficulty from questions join question_units "
   "on question_units.id = questions.unit_id where unit_id like '{prefix}%'")]
 print(json.dumps(rows, ensure_ascii=False))
 '''
@@ -86,16 +86,18 @@ def main():
         units = [(i.get("id"), i.get("stem"), i.get("answer"), i.get("explanation"),
                   i.get("type"), i.get("knowledge"), (i.get("filterMetadata") or {}),
                   i.get("unit_kind") or i.get("unitKind") or "standalone",
-                  i.get("material") or "", i.get("subquestions") or []) for i in items]
+                  i.get("material") or "", i.get("subquestions") or [], i.get("difficulty") or "") for i in items]
     elif a.ids:
-        units = [(u, s, ans, e, t, json.loads(kj or "[]"), json.loads(fm or "{}"), kind, mat, json.loads(sj or "[]"))
-                 for u, s, ans, e, t, kj, fm, kind, mat, sj in fetch(a.ids)]
+        units = [(u, s, ans, e, t, json.loads(kj or "[]"), json.loads(fm or "{}"), kind, mat,
+                  json.loads(sj or "[]"), diff or "")
+                 for u, s, ans, e, t, kj, fm, kind, mat, sj, diff in fetch(a.ids)]
     else:
         ap.error("需要 --ids 或 --batch")
 
     blockers, rows, no_explanation = {}, [], []
+    legacy_difficulty = []
     blank_spaces = []
-    for uid, stem, ans, exp, qtype, knowledge, fm, kind, material, subs_q in units:
+    for uid, stem, ans, exp, qtype, knowledge, fm, kind, material, subs_q, diff in units:
         b = []
         if not (stem or "").strip():
             b.append("missing_stem")
@@ -103,6 +105,8 @@ def main():
             b.append("missing_answer")
         if not (exp or "").strip():
             no_explanation.append(uid)
+        if (diff or "").strip() not in ("", "容易", "适中", "困难"):
+            legacy_difficulty.append((uid, diff))
         if stem and "\u3000\u3000" in stem:
             blank_spaces.append(uid)
         if not (qtype or "").strip():
@@ -133,6 +137,8 @@ def main():
 
     print(f"检查 {len(units)} 个单元")
     print(f"解析为空 {len(no_explanation)} 个（不阻断发布，仅提示）")
+    if legacy_difficulty:
+        print(f"非标准难度标签 {len(legacy_difficulty)} 个（应统一为 容易/适中/困难）：{legacy_difficulty[:6]}")
     if blank_spaces:
         print(f"题干用全角空格代替下划线 {len(blank_spaces)} 个（建议改成 ______）：{blank_spaces[:6]}")
     if blockers:
