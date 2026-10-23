@@ -103,6 +103,17 @@ def score_of(rules, qtype, feat):
             score += float(r["delta"])
             basis.append(r["basis"])
 
+    for comp in cfg.get("composite_rules") or []:
+        ok = True
+        for cond in comp["all"]:
+            if "word_count_gte" in cond and feat["word_count"] < cond["word_count_gte"]:
+                ok = False
+            if "when_knowledge_any" in cond and not hit(cond["when_knowledge_any"], feat["kpaths"]):
+                ok = False
+        if ok:
+            score += float(comp["delta"])
+            basis.append(comp["basis"])
+
     prior = (cfg.get("type_prior") or {}).get(qtype)
     if prior:
         score += float(prior)
@@ -132,16 +143,22 @@ def categories_of(rules, qtype, feat):
     return out, basis
 
 
-def decorate(rules, item):
+def decorate(rules, item, has_ts=False, duration=None):
     qtype = item.get("type") or item.get("question_type") or ""
     feat = features(item)
     bands = rules["doc_constraints"]["difficulty_value_bands"]
 
     no_evidence = (qtype in (rules["feature_scoring"].get("no_evidence_types") or [])
-                   and feat["word_count"] < 60)
+                   and not has_ts and duration is None)
     if no_evidence:
         value = None
         basis = [rules["feature_scoring"].get("no_evidence_note", "无文本依据")]
+    elif qtype in (rules["feature_scoring"].get("no_evidence_types") or []) and duration is not None:
+        value, basis = None, []
+        for band in rules["feature_scoring"]["audio_duration_scoring"]["bands"]:
+            if duration < band["lt"]:
+                value, basis = float(band["value"]), [band["basis"]]
+                break
     else:
         value, basis = score_of(rules, qtype, feat)
 
@@ -181,13 +198,27 @@ def main():
     ap.add_argument("--ids")
     ap.add_argument("--apply", action="store_true")
     ap.add_argument("--report", action="store_true")
+    ap.add_argument("--tapescripts", help="听力稿 JSON：{unit_id: text}，只用于算特征，不写入 material")
+    ap.add_argument("--durations", help="音频时长 JSON：{unit_id: seconds}，无听力稿时的负荷代理")
     a = ap.parse_args()
     rules = json.load(open(RULES, encoding="utf-8"))
+    tapes = {}
+    if a.tapescripts:
+        tapes = json.load(open(a.tapescripts, encoding="utf-8"))
+    durations = {}
+    if a.durations:
+        durations = json.load(open(a.durations, encoding="utf-8-sig"))
 
     if a.batch:
         batch = json.load(open(a.batch, encoding="utf-8-sig"))
         for it in batch["items"]:
-            decorate(rules, it)
+            ts = tapes.get(it.get("id"))
+            if ts:
+                saved, it["material"] = it.get("material"), ts
+                decorate(rules, it, has_ts=True)
+                it["material"] = saved
+            else:
+                decorate(rules, it, has_ts=False)
         if a.report:
             from collections import Counter
             c = Counter((i["type"], i["difficulty"] or "待定") for i in batch["items"])
@@ -216,10 +247,12 @@ def main():
         key = open(KEY_FILE, encoding="ascii").read().strip()
         ok, fail, pending = 0, [], []
         for uid, qtype, stem, mat, opts, diff, kj, fm, sj in rows:
-            item = {"type": qtype, "stem": stem or "", "material": mat or "",
+            ts = tapes.get(uid)
+            dur = durations.get(uid)
+            item = {"type": qtype, "stem": stem or "", "material": (ts or mat or ""),
                     "options": json.loads(opts or "[]"), "knowledge": json.loads(kj or "[]"),
                     "filterMetadata": json.loads(fm or "{}"), "subquestions": json.loads(sj or "[]")}
-            decorate(rules, item)
+            decorate(rules, item, has_ts=bool(ts), duration=dur)
             if item["filterMetadata"]["difficultyValue"] is None:
                 pending.append(uid)
             body = json.dumps({"difficulty": item["difficulty"],

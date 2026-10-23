@@ -26,4 +26,5 @@
 {"ts": "2026-10-23T09:35:00+08:00", "action": "edit", "type": "skill", "id": "subtypes", "summary": "§6 重写为主类+子类两级匹配；新增 references/type-subtypes.md；preflight 增加子类校验；补 2021/2022 的 subtypes", "target": "references/type-subtypes.md"}
 {"ts": "2026-10-23T10:40:00+08:00", "action": "add", "type": "script", "id": "pdf-extract", "summary": "新增 pdf_extract.py：无文字层 PDF 的渲染/分页分栏/OCR(RapidOCR)/选项图与表格切分/题号归集；补 references/pdf-extraction.md", "target": "scripts/pdf_extract.py"}
 {"ts": "2026-10-23T11:05:00+08:00", "action": "add", "type": "skill", "id": "difficulty-category", "summary": "§7.9 难度与分类：按文档填 difficulty/categories/difficultyValue；新增 assign_meta.py 特征打分 + 待定清单；preflight 校验取值", "target": "references/difficulty-category.json"}
+{"ts": "2026-10-23T11:40:00+08:00", "action": "edit", "type": "skill", "id": "difficulty-fill", "summary": "assemble_meta 支持 --tapescripts/--durations；六套安徽卷 250 个单元的 difficulty/difficultyValue/categories 已录入（容易 84 / 适中 166）", "target": "scripts/assign_meta.py"}
 ```
