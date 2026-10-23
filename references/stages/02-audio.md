@@ -19,8 +19,23 @@
 ```bash
 python scripts/cut_audio.py --audio 听力.mp3 --report          # 分层
 python scripts/cut_audio.py --audio 听力.mp3 --transcribe      # 转写找锚点
-python scripts/cut_audio.py --audio 听力.mp3 --anchors 40.1,66.6 --ends ... --out 02_audio/ --verify
+python scripts/cut_audio.py --audio 听力.mp3 --anchors 40.1,66.6 --ends ... --out 02_audio/ \
+    --verify --verify-seconds 20                               # 只回读每段前 20 秒
 ```
+
+**`--verify-seconds` 是省时间的关键**：校验只判「每段首句对不对」，整段转写纯属浪费。
+2025 卷整段校验要 11 分钟，2026 卷改成 20 秒后同样的 9 段切分+校验只要 **9 秒**。
+长段（短文 120s、信息转换 90s）尤其明显。
+
+**锚点可以直接从静音表推**，不必先跑全卷转写：题间静音有稳定档位（8–17s，大题之间 27–29s），
+只看「该段起点之后的语音是英文还是中文题头」就够了。做法：
+1. `--report` 拿静音表与档位；
+2. 长静音对（结束点=起点候选）先按档位切出候选段；
+3. 对可疑边界（大题交界）切 10–15 秒单独转写，确认是英文正文还是中文题头；
+4. 定稿后 `--verify --verify-seconds 12~20` 逐段回读首句。
+
+2026 实测：全流程（分层 + 2 次边界探针 + 切分 + 9 段回读）约 40 秒；
+其中「中文题头」是最容易漏的——中文播报会占 15–20 秒，直接按静音中点切会把播报吞进上一段或当成下一段开头。
 
 ## 2.2 卷首试音必须切掉
 

@@ -100,7 +100,7 @@ def transcribe(audio):
 
 
 def cut(audio, outdir, anchors, verify, tail, ends=None, trim_intro=False, intro_end=None,
-        expect=None):
+        expect=None, verify_seconds=0):
     os.makedirs(outdir, exist_ok=True)
     total = duration(audio)
     anchors = list(anchors)
@@ -151,12 +151,25 @@ def cut(audio, outdir, anchors, verify, tail, ends=None, trim_intro=False, intro
         return files
 
     model = load_model()
-    print("\n回读验证（比对每段首句）:")
+    scope = f"前 {verify_seconds}s" if verify_seconds else "整段"
+    print(f"\n回读验证（{scope}，比对每段首句）:")
+    import shutil as _sh, tempfile as _tf
     for p, _ in files:
-        segs, _ = model.transcribe(audio_array(p), beam_size=1, language="en",
+        src = p
+        tmp = None
+        if verify_seconds:
+            # 只切首 N 秒喂给 whisper：整段转写对「首句是否对得上」是浪费（长段尤其明显）
+            tmp = os.path.join(_tf.gettempdir(), "_verify_head.mp3")
+            subprocess.run(["ffmpeg", "-hide_banner", "-loglevel", "error", "-y",
+                            "-t", str(verify_seconds), "-i", p,
+                            "-ac", "1", "-ar", "16000", tmp], check=True)
+            src = tmp
+        segs, _ = model.transcribe(audio_array(src), beam_size=1, language="en",
                                    condition_on_previous_text=False)
         head = " ".join(s.text.strip() for s in segs)[:80]
         print(f"  {os.path.basename(p)}  {head}")
+        if tmp and os.path.exists(tmp):
+            os.remove(tmp)
     print("\n逐段与听力材料首行比对，命中率应 >= 18/19；不达标就调锚点重切，不要凑合。")
     return files
 
@@ -172,6 +185,8 @@ def main():
                                    "缺省时每段切到下一个起点")
     ap.add_argument("--tail", type=float, default=None, help="最后一段终点，默认到文件末尾")
     ap.add_argument("--verify", action="store_true", help="切完逐段回读")
+    ap.add_argument("--verify-seconds", type=float, default=0,
+                    help="回读只取每段前 N 秒（0=整段）。校验「首句是否对得上」用 20 秒足够，长段能省数倍时间")
     ap.add_argument("--intro-end", type=float, default=None,
                     help="卷首试音结束秒数，之前的内容全部丢弃（用转写看第一条正文开口时间）")
     ap.add_argument("--trim-intro", action="store_true",
@@ -189,7 +204,8 @@ def main():
             ap.error("--out 需要配合 --anchors")
         anchors = [float(x) for x in a.anchors.split(",") if x.strip()]
         ends = [float(x) for x in a.ends.split(",") if x.strip()] if a.ends else None
-        cut(a.audio, a.out, anchors, a.verify, a.tail, ends, a.trim_intro, a.intro_end, a.expect)
+        cut(a.audio, a.out, anchors, a.verify, a.tail, ends, a.trim_intro, a.intro_end,
+            a.expect, a.verify_seconds)
     return 0
 
 

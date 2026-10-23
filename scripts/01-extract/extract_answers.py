@@ -9,6 +9,10 @@
     又要在每次录题时重来一遍。这个脚本把手抄换成「机器抽表 + check_answers.py 比对」，
     两边都错才会漏（一个来自答案册原文，一个来自批次）。
 
+多套卷合并的答案册（如「2022~2026安徽中考真题答案.docx」）：
+    必须给 --year：按「20XX年…考试」标题切出该年份的正文段，**表格也只取落在这段里的**。
+    不切就会把 5 套卷的答案混在一起、题号互相覆盖（2026 实测冲突 187 条）。
+
 支持两种形态：
     1) 表格：`题号 | 1~5 | 6~10` / `答案 | CBCAC | BBAAC`，按单元格一一配对后展开区间；
     2) 文本：`1~5 CBCAC`、`21.C　【解析】…`、`16.Silence/silence　17.Smile …`，
@@ -16,9 +20,9 @@
     解析（【解析】及其后内容）不取。遇到「听力录音材料」章节即停止，避免把听力稿当答案。
 
 输出结构：
-    {"year": 2025, "count": 80,
-     "numbers": {"1": "C", "16": "Silence/silence", ...},
-     "subjective": [73, 74, 75],
+    {"year": 2026, "count": 80,
+     "numbers": {"1": "C", "16": "general", ...},
+     "subjective": [16, 17, 73, 74, 75, ...],
      "conflicts": [[题号, 旧值, 新值]], "skipped": [...], "sources": {...}}
 """
 import argparse
@@ -32,6 +36,7 @@ RANGE_RE = re.compile(r"^\s*(\d{1,3})\s*[~～\-—至]\s*(\d{1,3})\s*[:：]?\s*(
 PAIR_RE = re.compile(r"^\s*(\d{1,3})\s*[.．、]\s*(.+?)\s*$")
 LETTER_RE = re.compile(r"^[A-Ga-g]$")
 CJK_RE = re.compile(r"[\u3000-\u303f\u4e00-\u9fff\uff00-\uffef]")
+YEAR_HEAD = re.compile(r"^\s*\d{0,2}\s*(20\d{2})\s*年\s*.{0,8}(学业水平|中考|毕业学业)")
 TAIL = " \t。.,;；:：!！?？\"'“”‘’"
 
 
@@ -53,6 +58,13 @@ def clean_value(raw):
     if len(value) > 120:
         return None, None
     return value.rstrip(TAIL), True
+
+
+def put(out, conflicts, num, value, subjective):
+    if num in out and out[num]["value"] != value:
+        conflicts.append([num, out[num]["value"], value])
+        return
+    out[num] = {"value": value, "subjective": bool(subjective)}
 
 
 def parse_chunks(line, out, conflicts, skipped):
@@ -82,16 +94,11 @@ def parse_chunks(line, out, conflicts, skipped):
         put(out, conflicts, num, value, subjective)
 
 
-def put(out, conflicts, num, value, subjective):
-    if num in out and out[num]["value"] != value:
-        conflicts.append([num, out[num]["value"], value])
-        return
-    out[num] = {"value": value, "subjective": bool(subjective)}
-
-
-def table_answers(tables, out, conflicts):
-    """题号行 + 答案行 按单元格配对。"""
-    for rows in tables:
+def table_answers(tables, out, conflicts, keep=None):
+    """题号行 + 答案行 按单元格配对。keep 为要保留的表索引集合（按年份切片时用）。"""
+    for ti, rows in enumerate(tables):
+        if keep is not None and ti not in keep:
+            continue
         headers = None
         for row in rows:
             cells = [c.strip() for c in row]
@@ -114,15 +121,17 @@ def table_answers(tables, out, conflicts):
 
 
 def docx_lines(path):
+    """返回 (lines, tables, table_pos)：table_pos[i] 是第 i 张表出现时的正文行号。"""
     import docx
     d = docx.Document(path)
-    lines, tables = [], []
+    lines, tables, table_pos = [], [], []
     for child in d.element.body.iterchildren():
         if child.tag.endswith("}p"):
             t = "".join(node.text or "" for node in child.iter() if node.tag.endswith("}t"))
             if t.strip():
                 lines.append(t)
         elif child.tag.endswith("}tbl"):
+            table_pos.append(len(lines))
             rows = []
             for tr in child.iter():
                 if not tr.tag.endswith("}tr"):
@@ -136,28 +145,57 @@ def docx_lines(path):
                     rows.append(cells)
             tables.append(rows)
             lines.append(" | ".join("".join(r) for r in rows))
-    return lines, tables
+    return lines, tables, table_pos
+
+
+def year_spans(lines, year):
+    """找出所有「20XX年…考试」卷首，返回 {年份: (起, 止)}；同一年多卷时取第一段。"""
+    marks = []
+    for i, line in enumerate(lines):
+        m = YEAR_HEAD.match(line)
+        if m:
+            marks.append((i, int(m.group(1))))
+    spans = {}
+    for idx, (start, y) in enumerate(marks):
+        end = marks[idx + 1][0] if idx + 1 < len(marks) else len(lines)
+        spans.setdefault(y, (start, end))
+    return spans
 
 
 def main():
     ap = argparse.ArgumentParser(description="答案册 → 题号答案表")
     ap.add_argument("--docx")
     ap.add_argument("--txt")
-    ap.add_argument("--year", type=int, default=0)
+    ap.add_argument("--year", type=int, default=0, help="多套卷合并的答案册必须给，否则题号互相覆盖")
     ap.add_argument("--out", default="answers.json")
     a = ap.parse_args()
     if not (a.docx or a.txt):
         ap.error("给 --docx 或 --txt")
 
+    table_pos = []
     if a.docx:
-        lines, tables = docx_lines(a.docx)
+        lines, tables, table_pos = docx_lines(a.docx)
     else:
         tables = []
         lines = [l for l in open(a.txt, encoding="utf-8-sig").read().splitlines() if l.strip()]
 
+    # 按年份切片：正文与表格都要限在同一段里，否则多套卷的答案会互相覆盖
+    keep_tables = None
+    if a.year:
+        spans = year_spans(lines, a.year)
+        if a.year in spans:
+            begin, end = spans[a.year]
+            print(f"已切出 {a.year} 年段：第 {begin}–{end} 行（共 {end - begin} 行）")
+            if table_pos:
+                keep_tables = {i for i, p in enumerate(table_pos) if begin <= p < end}
+                print(f"该段内表格 {len(keep_tables)}/{len(tables)} 张")
+            lines = lines[begin:end]
+        else:
+            print(f"警告: 没找到 {a.year} 年的卷首标记，按全文解析（多套卷会冲突）")
+
     out, conflicts, skipped = {}, [], []
     if tables:
-        table_answers(tables, out, conflicts)
+        table_answers(tables, out, conflicts, keep_tables)
     for line in lines:
         if any(mark in line for mark in STOP_MARKERS):
             break

@@ -43,3 +43,5 @@
 {"ts": "2026-10-23T17:40:00+08:00", "action": "add", "type": "script", "id": "run-upload", "summary": "新增 run_upload.py 上传流水线：本地体检并行、服务器闸门合并一次 SSH（stdin 传脚本与批次）、媒体并发 Range 校验；8.9s→3.9s", "target": "scripts/06-upload/run_upload.py"}
 {"ts": "2026-10-23T17:40:00+08:00", "action": "add", "type": "script", "id": "gate-remote", "summary": "新增 _gate_remote.py：一次会话内做查重 + 服务端校验器预检 + 同 ID 统计，不复制库", "target": "scripts/06-upload/_gate_remote.py"}
 {"ts": "2026-10-23T17:10:00+08:00", "action": "fix", "type": "script", "id": "run-upload-media-skip", "summary": "run_upload 热路径再优化：闸门带回远端媒体清单，只传缺失文件；实测 6.9s→2.3s", "target": "scripts/06-upload/run_upload.py"}
+{"ts": "2026-10-23T17:35:00+08:00", "action": "fix", "type": "script", "id": "answers-multipaper", "summary": "extract_answers 支持多套卷合并：--year 切正文段并按表格位置过滤表格，187 冲突→0；2022-2025 复测均 0", "target": "scripts/01-extract/extract_answers.py"}
+{"ts": "2026-10-23T17:35:00+08:00", "action": "add", "type": "script", "id": "verify-seconds", "summary": "cut_audio 新增 --verify-seconds：只回读每段前 N 秒，2026 卷切分+校验 11 分钟→9 秒", "target": "scripts/02-audio/cut_audio.py"}

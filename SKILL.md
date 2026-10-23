@@ -45,7 +45,7 @@ docx 优先；`.doc` 用 Word COM `SaveAs2($dst, 12)`。表格逐行导出；图
 位置标记，再用 `contact_sheet.py` 出缩略图肉眼确认归属（logo/二维码/栏目角标不算选项图）。
 PDF 无文字层（`extract_text()` 为空）→ 渲染 + OCR：先认拼版（8 开多为 3 页或 2 页并排，页脚页码是切分锚点），
 再定栏数（试卷 1、答案册 2、正文「上表通栏+下两栏」2）。OCR 首选 RapidOCR。详见 `references/pdf-extraction.md`。
-答案册另跑 `extract_answers.py` 落 `answers.json`，供 ⑥ 的 `check_answers.py` 逐题比对。
+答案册另跑 `extract_answers.py` 落 `answers.json`（**多套卷合并的答案册必须给 `--year`**，否则题号互相覆盖），供 ⑥ 的 `check_answers.py` 逐题比对。
 
 ### ② 听力
 段数 = 听力单元数，不是题数。先 `silencedetect` 分层，再用念出的题号做锚点，`--intro-end` 切掉试音，
@@ -86,7 +86,8 @@ python $S/01-extract/contact_sheet.py 01_source/media/ --out 01_source/contact_s
 python $S/01-extract/extract_answers.py --docx 答案.docx --year 2025 --out 01_source_ans/answers.json
 python $S/01-extract/pdf_extract.py --pdf 试卷.pdf --out 01_source/ --cols-per-page 1
 python $S/02-audio/extract_script.py --docx 答案.docx --year 2022 --out ts.json
-python $S/02-audio/cut_audio.py --audio 听力.mp3 --anchors 40.1,66.6 --intro-end 29.1 --out 02_audio/ --verify
+python $S/02-audio/cut_audio.py --audio 听力.mp3 --anchors 40.1,66.6 --intro-end 29.1 --out 02_audio/ \
+    --verify --verify-seconds 20
 python $S/04-knowledge/find_kp.py 被动语态
 python $S/04-knowledge/check_tags.py --ids AH-2022
 python $S/04-knowledge/check_tags.py --batch 06_batch/batch.json      # 上传前查

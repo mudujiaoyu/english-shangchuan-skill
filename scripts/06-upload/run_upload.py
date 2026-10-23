@@ -61,6 +61,15 @@ def ssh(cmd, timeout=180):
     return r.returncode, r.stdout, r.stderr
 
 
+def push_media(local_dir, names, dest):
+    """建目录 + scp：返回 (ok, 提示)。作为后台任务跑，和闸门并行。"""
+    ssh(f"mkdir -p {dest}", timeout=60)
+    r = subprocess.run(["scp", "-i", SSH_KEY, "-o", "IdentitiesOnly=yes", "-o", "BatchMode=yes",
+                        "-q"] + [os.path.join(local_dir, f) for f in names] + [f"{REMOTE}:{dest}/"],
+                       capture_output=True, text=True)
+    return (r.returncode == 0, (r.stderr or "")[:160])
+
+
 def post_batch(batch_path):
     key = open(KEY_FILE, encoding="ascii").read().strip()
     body = open(batch_path, "rb").read()
@@ -162,6 +171,7 @@ def main():
 
     # ② 服务器：查重 + 预检 + 媒体点数，合并成一次会话
     remote_media = {}
+    media_todo = []
     media_names = []
     if a.media_dir and os.path.isdir(a.media_dir):
         media_names = sorted(os.listdir(a.media_dir))
