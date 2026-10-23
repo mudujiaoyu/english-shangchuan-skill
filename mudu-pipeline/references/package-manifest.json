@@ -1,0 +1,73 @@
+{
+ "pipeline": "mudu-pipeline",
+ "stages": [
+  {
+   "stage": 1,
+   "skill": "mudu-extract",
+   "input": "01_source",
+   "files": [
+    "scripts/extract_docx.py",
+    "scripts/pdf_extract.py",
+    "references/structure.md",
+    "references/pdf-extraction.md"
+   ]
+  },
+  {
+   "stage": 2,
+   "skill": "mudu-audio",
+   "input": "02_audio",
+   "files": [
+    "scripts/cut_audio.py",
+    "references/audio-splitting.md"
+   ]
+  },
+  {
+   "stage": 3,
+   "skill": "mudu-type-map",
+   "input": "03_types",
+   "files": [
+    "references/type-subtypes.md"
+   ]
+  },
+  {
+   "stage": 4,
+   "skill": "mudu-knowledge",
+   "input": "04_knowledge",
+   "files": [
+    "references/knowledge-catalog-1.0.md",
+    "references/knowledge-catalog.json",
+    "references/knowledge-tagging.md",
+    "references/knowledge-matching-rules.md",
+    "references/type-knowledge-map.json",
+    "references/type-knowledge-map.md",
+    "scripts/find_kp.py",
+    "scripts/apply_type_tags.py",
+    "scripts/fill_subtags.py",
+    "scripts/spell_pos.py",
+    "scripts/retag_drafts.py",
+    "scripts/check_tags.py"
+   ]
+  },
+  {
+   "stage": 5,
+   "skill": "mudu-meta",
+   "input": "05_meta",
+   "files": [
+    "references/difficulty-category.json",
+    "references/knowledge-catalog.json",
+    "scripts/assign_meta.py"
+   ]
+  },
+  {
+   "stage": 6,
+   "skill": "mudu-upload",
+   "input": "06_batch",
+   "files": [
+    "scripts/check_duplicates.py",
+    "scripts/preflight_check.py",
+    "scripts/patch_attachments.py",
+    "references/upload-api.md"
+   ]
+  }
+ ]
+}

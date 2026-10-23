@@ -1,43 +1,42 @@
-# english-shangchuan-skill
+# mudu-skills — 木牍英语题库录入技能包
 
-木牍教育英语题库「录题」技能（mudu-question-upload）的发布仓库。
+一份原卷从「文件」到「进题库」的完整流水线，拆成 6 个阶段包 + 1 个编排包。
+每个包只干一件事，产出固定文件交给下一步。
 
-## 这是什么
+```
+mudu-extract → mudu-audio → mudu-type-map → mudu-knowledge → mudu-meta → mudu-upload
+   01_source     02_audio      03_types        04_knowledge     05_meta    06_batch/07_upload
+```
 
-把一份原卷（.docx/.pdf + 听力 mp3）整理成题库 API 批次对象并写入上传暂存：
-提取正文/表格/图片 → 切分听力音频（去试音）→ 26 类题型与子类映射 → 答案与解析核对 →
-知识点打标（七维度、词性细分、子题继承）→ 生成批次 → 上传前查重与预检 → POST /api/uploads。
+| 包 | 负责 | 主要产出 |
+| --- | --- | --- |
+| `mudu-extract` | 原卷解析：docx/pdf → 正文、表格、图片、结构清单 | `01_source/` |
+| `mudu-audio` | 听力整卷切段：分层、锚点、去试音、回读校验 | `02_audio/` |
+| `mudu-type-map` | 匹配 26 主类 + 子类（建议存储值） | `03_types/types.json` |
+| `mudu-knowledge` | 答案/解析核对 + 七维度知识点打标 | `04_knowledge/knowledge.json` |
+| `mudu-meta` | 难度（difficulty/difficultyValue）与分类（优选题/易错题） | `05_meta/meta.json` |
+| `mudu-upload` | 组装批次、查重、预检、媒体、POST、PATCH | `06_batch/`、`07_upload/` |
+| `mudu-pipeline` | 交接契约、顺序规则、汇总校验 | `verify_package.py` |
+
+## 汇总校验
+
+```bash
+python mudu-pipeline/scripts/verify_package.py        # 目录/契约/编译
+python mudu-pipeline/scripts/verify_package.py --run  # 再跑各包 smoke test
+```
 
 ## 安装
 
-把本仓库内容放到 Agent 技能目录，目录名保持 `mudu-question-upload`：
+把 7 个目录放进技能目录（例如 `~/.agents/skills/`），重启会话即可在技能列表看到。
 
-- Windows: `%USERPROFILE%\.agents\skills\mudu-question-upload\`
-- 其他: `~/.agents/skills/mudu-question-upload/`
+## 边界
 
-要求：`python`、`ffmpeg`、`ffprobe`、`ssh`、`scp`、`curl`（转写功能另需 `faster-whisper`）。
+Harness 身份只能：读目录、`POST /api/uploads`、`PATCH /api/questions/{id}`（仅草稿）、
+提知识点建议、导出。确认、发布、删除、列表读取必须人工在后台完成。
 
-## 结构
+## 约定
 
-| 路径 | 说明 |
-| --- | --- |
-| `SKILL.md` | 主文档：流程、身份边界、题型映射、知识点打标、自检、坑 |
-| `references/structure.md` | 怎么从原卷推断结构（三步） |
-| `references/type-subtypes.md` | 26 主类 × 子类检索表 |
-| `references/type-knowledge-map.json/.md` | 题型 → 默认知识点 |
-| `references/knowledge-matching-rules.md` | 知识点逐分支匹配细则 |
-| `references/knowledge-tagging.md` | 打标原则与禁标矩阵 |
-| `references/knowledge-catalog-1.0.md/.json` | 知识点目录原文与 514 节点索引 |
-| `scripts/*.py` | 提取、切分、查重、预检、打标、检索脚本 |
-| `.learnings/` | 内部问题台账（ISSUES/IMPROVEMENTS/CHANGELOG） |
-
-## 快速用法
-
-```bash
-python scripts/extract_docx.py 原卷.docx out/
-python scripts/cut_audio.py --audio 听力.mp3 --report
-python scripts/preflight_check.py --batch batch.json --insert
-python scripts/check_duplicates.py --batch batch.json
-```
-
-> 仓库里的 `.learnings/` 是踩坑记录，随技能一起版本化，便于追溯规则为什么这样定。
+- 题型只能取 26 个固定主类，子类只能取框架里列出的值，不得新增/改名。
+- 知识点必须落在目录叶子上，「词汇/词汇辨析」这类父节点不算。
+- 难度按 `developer.md`：`difficulty` 取易/中/难，`difficultyValue` 0–1，未知留空不猜。
+- 上传前必须过查重与预检两道闸门。
