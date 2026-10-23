@@ -312,3 +312,31 @@
 | 根因 | 技能目录是**同步出来的副本**，`sync_skill.py` 默认方向是「仓库 → 技能目录」且会先删目标目录；另一端（另一个会话/人）改了仓库并同步，把本地改动整个冲掉。`--force` 保护只挡「本地比仓库新 60 秒以上」的情况，跨会话很容易绕过 |
 | 处置 | 从仓库侧已落地的改动重新同步回来，其余改动改到本地后立刻 `sync_skill.py --from-skill` |
 | 预防 | 改技能前后都先确认方向：**本地是源**，写完立刻 `--from-skill` 收回仓库并 commit；或 `sync_skill.py --mode link` 把本地建成仓库的目录联接，从根上消除两个副本。动工前先 `git status` 看仓库是否有别人未提交的改动 |
+
+
+## 34. 阅读选项图挂到单元上，前端根本不显示
+
+| 项 | 内容 |
+| --- | --- |
+| 现象 | AH-2025-056 第 57 题、AH-2023-056 第 57 题的四个选项是图片，题卡上只剩 `A. B. C. D.` 空壳；接口 200，无任何报错 |
+| 根因 | 选项图按「听力短对话」的写法挂在了**单元** `attachments`（placement=option + optionKey）。前端 `selectionSubquestionMarkup` 渲染子题时把**子题对象**传给 `mediaMarkup`，只认 `subquestions[].attachments`——单元级的选项图在组题里永远匹配不到 |
+| 处置 | 把四张图移到 `subquestions[57].attachments`；AH-2023-056 顺带补齐缺失的四张图（原 docx image11–14）与海报材料图（image10） |
+| 预防 | 新增 `scripts/06-upload/audit_reading.py`（选项图/材料图/大意/空答案）；`preflight_check.py` 增加同两条校验，报「选项图疑似挂到了单元上」；口径写进 06-upload.md 6.2b 与 knowledge-tagging.md |
+
+## 35. 阅读文章本身是图片时，被手打成一份 material
+
+| 项 | 内容 |
+| --- | --- |
+| 现象 | 2025 阅读 A 的材料是杂志目录图，录入时同时给了「图片 + 手打全文 material + materialBlocks」三份 |
+| 根因 | 想兼顾检索与展示，但转写本身带错字风险（本次 `material` 就是照图手打的），且三份内容要同步维护 |
+| 处置 | 按产品口径：材料是图就**直接显示图**，`material` 清空，图挂 `placement:"question"`，结构复杂时保留 `materialBlocks` |
+| 预防 | 06-upload.md 6.2b 写明「材料是图片时 material 留空」；`audit_reading.py` 把「material 空 + 有材料图」判为正常，不误报 |
+
+## 36. PATCH 子题时把附件/知识点冲掉，且旧标签会自己回来
+
+| 项 | 内容 |
+| --- | --- |
+| 现象 | 修 2023 选项图时，第二轮 PATCH 只提交了 `subquestions`（改知识点），第一轮刚写进去的子题附件被清空；另外把知识点改成正确值后，子题仍显示旧的「说明文」 |
+| 根因 | ① `subquestions` 是**整体替换**，提交的数组里没带的字段就按缺失处理；② 服务端 `prepare_question_knowledge` 会读子题 `textbookMappings` 里的旧 knowledgeIds 一起解析，旧标签因此「复活」 |
+| 处置 | 改子题前一律先读现状整段带走（值原样回传，只改目标字段），并把子题的 `textbookMappings.knowledgeIds` 一起替换成目标 id |
+| 预防 | 06-upload.md「PATCH 改草稿的三条铁律」；修数据脚本统一走「读快照 → 只改目标字段 → PATCH → 回读校验」四步，不在中途用旧快照覆盖 |

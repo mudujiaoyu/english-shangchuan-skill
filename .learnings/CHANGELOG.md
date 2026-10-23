@@ -37,3 +37,6 @@
 {"ts": "2026-10-23T16:45:00+08:00", "action": "add", "type": "skill", "id": "answers-gate", "summary": "新增 extract_answers.py / check_answers.py：答案册机器抽表 + 批次逐题比对（客观硬拦、主观提示、空答案硬拦），smoke 带正反样例", "target": "scripts/06-upload/check_answers.py"}
 {"ts": "2026-10-23T16:45:00+08:00", "action": "add", "type": "skill", "id": "img-markers", "summary": "extract_docx.py 在正文留 [IMG] 位置标记；新增 contact_sheet.py 出缩略图清单，图片归属不再靠序号反推", "target": "scripts/01-extract/extract_docx.py"}
 {"ts": "2026-10-23T16:45:00+08:00", "action": "fix", "type": "rule", "id": "doc-consistency", "summary": "口径统一：difficulty 容易/适中/困难、主题只写叶子、主类 27；check_tags / check_text 增加 --batch 上传前模式", "target": "SKILL.md"}
+{"ts": "2026-10-23T17:05:00+08:00", "action": "add", "type": "script", "id": "audit-reading", "summary": "新增 audit_reading.py：查阅读类选项图/材料图/文章大意/子题空答案；preflight 同步加两条校验并报「选项图挂到单元上」", "target": "scripts/06-upload/audit_reading.py"}
+{"ts": "2026-10-23T17:05:00+08:00", "action": "fix", "type": "rule", "id": "reading-image-level", "summary": "阅读图片层级定稿：材料图挂单元 question、选项图挂子题 option+optionKey；材料是图时 material 留空不转写", "target": "references/stages/06-upload.md"}
+{"ts": "2026-10-23T17:05:00+08:00", "action": "fix", "type": "rule", "id": "patch-overwrite", "summary": "PATCH 三条铁律：subquestions/attachments/filterMetadata 整体替换要先读后合并；子题 textbookMappings 会带回旧知识点", "target": "references/stages/06-upload.md"}

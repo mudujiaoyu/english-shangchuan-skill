@@ -22,6 +22,7 @@
 python scripts/06-upload/check_answers.py --batch b.json --answers 01_source_ans/answers.json
 python scripts/06-upload/check_text.py --batch b.json
 python scripts/04-knowledge/check_tags.py --batch b.json
+python scripts/06-upload/audit_reading.py --batch b.json      # 阅读：选项图/材料图/大意/空答案
 ```
 
 - [ ] ID 唯一、格式统一
@@ -30,6 +31,22 @@ python scripts/04-knowledge/check_tags.py --batch b.json
 - [ ] `knowledge` 能解析成 ID（服务端只认名称或 ID，路径会 409）
 - [ ] 附件 `placement` 只能是 `question/option/answer/explanation`
 - [ ] 体积 < 2 MB
+- [ ] **阅读类图片层级正确**：材料图挂单元、选项图挂子题（见 6.2b）
+
+## 6.2b 阅读题的两类图片，挂错不会报错只会「看不见」
+
+| 图的用途 | 挂在哪 | 字段 | 前端行为 |
+| --- | --- | --- | --- |
+| 材料本身是图（杂志目录、海报、表格、漫画） | **单元** `attachments` | `placement:"question"` | 渲染在材料区 |
+| 某道小题的选项是图（Which picture…） | **子题** `subquestions[i].attachments` | `placement:"option"` + `optionKey:"A"` | `selectionSubquestionMarkup` 把子题对象交给 `mediaMarkup`，只认子题级 |
+
+**挂错的表现**：选项只剩 `A.` `B.` `C.` `D.` 空壳，图一张都不出现；接口照样 200，没有任何报错。
+2026-10-23 体检时 AH-2025-056 第 57 题、AH-2023-056 第 57 题都是这个错。
+
+**材料是图片时**：`material` 留空，用 `placement:"question"` 的图承载（必要时加 `materialBlocks` 保留表格结构），
+不要再手打一份全文转写——既是重复，又把转写错误带进题库。
+
+`audit_reading.py` 与 `preflight_check.py` 都会拦这类错误（预检里报「选项图疑似挂到了单元上」）。
 
 ## 6.3 查重（硬闸门）
 
@@ -106,6 +123,13 @@ python scripts/06-upload/publish_check.py --batch b.json
 1. 从句中截取会带出**单边引号**（`“We’ve seen a growing　42　in learning Chinese.`），
    `check_text.py --batch` 会报「引号不配对」。截完把不成对的引号去掉，别留着。
 2. 空档标记写成 `__31__` 时会被「下划线过短」误报；`check_text.py` 已把 `__数字__` 先统一按 6 个下划线处理。
+
+**PATCH 改草稿的三条铁律**（都是整体覆盖，不是合并）：
+1. `subquestions` 整体替换——只想改某题的附件/知识点，也要把**其余子题的当前值**原样带回，
+   否则附件、答案、解析会被清空。改子题前先 `SELECT subquestions_json` 读现状。
+2. `attachments`、`filterMetadata` 同样是整体替换，先读后合并。
+3. 子题的 `textbookMappings` 里存着旧的 knowledgeIds；改子题知识点时必须连它一起替换，
+   否则服务端会把旧标签（如错标的「说明文」）解析回来，表现为「改完还是旧值」。
 
 **解析不阻断发布**：原卷/答案册有解析就跟着录入，没有就留空，不编造。`publish_check.py`
 会把「解析为空」单独统计成提示，不算阻断项。

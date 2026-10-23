@@ -45,18 +45,19 @@ if dup: fails.append(f"{dup} 个 ID 已存在")
 if len(ids) != len(set(ids)): fails.append("批次内 ID 重复")
 bad_src = {r.get("source_type") for r in items} - set(B.SOURCE_TYPES)
 if bad_src: fails.append(f"source_type 非法: {bad_src}")
-# 服务端 questions 表的 NOT NULL 列：这些字段传 None 会在确认时 500
+# 服务端 questions 表的 NOT NULL 列：显式传 null 会在确认时 500；
+# 但「键缺失」是允许的——建批脚本本来就不写这些字段，由服务端兜底成空串/[]。
 NOT_NULL_TEXT = ("stem", "answer", "explanation", "material", "curriculum", "type",
                  "difficulty", "source_type", "institution", "school", "regional_version",
                  "source", "location", "version", "authorization")
 NOT_NULL_LIST = ("options", "subquestions", "attachments", "knowledge", "knowledgeIds", "relations")
 for r in items:
     for k in NOT_NULL_TEXT:
-        if r.get(k) is None:
-            fails.append(f"{r.get('id')}: {k} 为 None（确认时会 NOT NULL 报错，给空串）")
+        if k in r and r[k] is None:
+            fails.append(f"{r.get('id')}: {k} 显式为 null（确认时会 NOT NULL 报错，删掉该键或给空串）")
     for k in NOT_NULL_LIST:
-        if r.get(k) is None:
-            fails.append(f"{r.get('id')}: {k} 为 None（应给 []）")
+        if k in r and r[k] is None:
+            fails.append(f"{r.get('id')}: {k} 显式为 null（删掉该键或给 []）")
 
 bad_kind = {r.get("unit_kind") for r in items} - {None, "", "standalone", "group"}
 if bad_kind: fails.append(f"unit_kind 非法: {bad_kind}")
@@ -79,6 +80,31 @@ if missing_diff:
 import urllib.request
 fw = json.load(urllib.request.urlopen("http://127.0.0.1:89/filter-framework.json"))
 valid_sub = {t["name"]: set(t.get("subtypes") or []) for t in fw["question_types"]}
+
+# 阅读类图片层级：材料图挂单元（placement=question），选项图挂子题（placement=option + optionKey）。
+# 挂在单元上的选项图前端不会渲染（渲染子题时读的是 subquestions[].attachments），必须当失败处理。
+READING_TYPES = {"阅读理解", "任务型阅读", "读写综合"}
+SHELLS = {"A.", "B.", "C.", "D.", "A", "B", "C", "D", ""}
+for raw in items:
+    if (raw.get("type") or "") not in READING_TYPES:
+        continue
+    uid = raw.get("id")
+    for sub in raw.get("subquestions") or []:
+        opts = sub.get("options") or []
+        shell = bool(opts) and all(str(o).strip() in SHELLS for o in opts)
+        has_opt_img = any(a.get("placement") == "option" and a.get("optionKey")
+                          for a in (sub.get("attachments") or []))
+        if shell and not has_opt_img:
+            unit_has = any(a.get("placement") == "option" and a.get("optionKey")
+                           for a in (raw.get("attachments") or []))
+            hint = "（选项图疑似挂到了单元上）" if unit_has else ""
+            fails.append(f"{uid}: 子题{sub.get('number')} 选项是空壳但没有 option 附件{hint}")
+    if not (raw.get("material") or "").strip():
+        has_q_img = any(a.get("placement") == "question" and (a.get("kind") or a.get("type")) == "image"
+                        for a in (raw.get("attachments") or []))
+        has_blocks = bool(raw.get("materialBlocks") or raw.get("material_blocks"))
+        if not has_q_img and not has_blocks:
+            fails.append(f"{uid}: 阅读材料为空，且没有材料图、也没有 materialBlocks")
 
 created = 0
 for raw in items:
