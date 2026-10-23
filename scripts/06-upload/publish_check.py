@@ -71,7 +71,8 @@ print(json.dumps(rows, ensure_ascii=False))
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("--ids", help="单元 ID 前缀，如 AH-2022")
+    ap.add_argument("--ids", nargs="?", const="", default=None,
+                    help="单元 ID 前缀；只写 --ids 表示全库")
     ap.add_argument("--batch", help="批次 JSON")
     ap.add_argument("--json", action="store_true", help="输出 JSON")
     ap.add_argument("--limit", type=int, default=20, help="明细最多打印几条")
@@ -88,6 +89,10 @@ def main():
                   i.get("unit_kind") or i.get("unitKind") or "standalone",
                   i.get("material") or "", i.get("subquestions") or [], i.get("difficulty") or "") for i in items]
     elif a.ids:
+        units = [(u, s, ans, e, t, json.loads(kj or "[]"), json.loads(fm or "{}"), kind, mat,
+                  json.loads(sj or "[]"), diff or "")
+                 for u, s, ans, e, t, kj, fm, kind, mat, sj, diff in fetch(a.ids)]
+    elif a.ids is not None:
         units = [(u, s, ans, e, t, json.loads(kj or "[]"), json.loads(fm or "{}"), kind, mat,
                   json.loads(sj or "[]"), diff or "")
                  for u, s, ans, e, t, kj, fm, kind, mat, sj, diff in fetch(a.ids)]

@@ -122,7 +122,7 @@ def main():
             if len(o) != 4 or not (s.get("stem") or "").strip():
                 cloze_bad.append((uid, s.get("number"), len(o)))
     if cloze_bad:
-        hits["完形选项异常"].extend([(u, "", f"子题{n}", f"{len(o)} 个选项") for u, n, o in cloze_bad])
+        hits["完形选项异常"].extend([(u, "", f"子题{n}", f"{cnt} 个选项") for u, n, cnt in cloze_bad])
 
     total = sum(len(v) for v in hits.values())
     print(f"扫描 {len(rows)} 个单元 / {texts} 段文本")
