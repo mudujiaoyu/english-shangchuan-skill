@@ -91,6 +91,7 @@ def main():
         ap.error("需要 --ids 或 --batch")
 
     blockers, rows, no_explanation = {}, [], []
+    blank_spaces = []
     for uid, stem, ans, exp, qtype, knowledge, fm in units:
         b = []
         if not (stem or "").strip():
@@ -99,6 +100,8 @@ def main():
             b.append("missing_answer")
         if not (exp or "").strip():
             no_explanation.append(uid)
+        if stem and "\u3000\u3000" in stem:
+            blank_spaces.append(uid)
         if not (qtype or "").strip():
             b.append("missing_question_type")
         elif qtype not in types:
@@ -118,6 +121,8 @@ def main():
 
     print(f"检查 {len(units)} 个单元")
     print(f"解析为空 {len(no_explanation)} 个（不阻断发布，仅提示）")
+    if blank_spaces:
+        print(f"题干用全角空格代替下划线 {len(blank_spaces)} 个（建议改成 ______）：{blank_spaces[:6]}")
     if blockers:
         print("阻断项:", json.dumps(blockers, ensure_ascii=False))
         print(f"受影响单元 {len(rows)} 个：")

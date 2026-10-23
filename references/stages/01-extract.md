@@ -34,6 +34,20 @@ python scripts/pdf_extract.py --pdf 试卷.pdf --out 01_source/ --cols-per-page 
 - OCR 首选 RapidOCR（`--ocr-backend rapid`），Windows OCR 只作兜底。
 - 产出 `pageNN.items.json`：题号 → 题干 + 选项 + `pageNN_fig_q1A.png` 图片。
 
+### 空格陷阱：下划线被导出成全角空格
+
+部分年份（如 2020 安徽卷）原卷的空用**下划线**呈现，转文本后变成 `U+3000` 全角空格，
+在页面上就看不到横线了。导出后必须检查并统一替换：
+
+```python
+stem = re.sub("\u3000{2,}", "______", stem)      # 空档
+stem = re.sub(r"([A-Za-z])\s*______", r"\1 ______", stem)   # 补空格
+```
+
+单词拼写题是「首字母 + 空」：`s　　　　(星星)` → `s______ (星星)`。
+
+`publish_check.py` 会扫全库并提示仍含全角空格的题干。
+
 ## 1.3 结构清单 structure.json
 
 按 `references/structure.md` 三步走：**切大题 → 查目录判题型 → 定题组与媒体**。
