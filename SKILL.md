@@ -71,6 +71,8 @@ PDF 无文字层（`extract_text()` 为空）→ 渲染 + OCR：先认拼版（8
 
 ### ⑥ 上传
 组装批次 → 答案比对 → 查重（ID/同年题号/内容指纹）→ 服务端校验器预检 → 部署媒体 → `POST /api/uploads`。
+`run_upload.py` 把这条链一次串起来（本机体检并行、服务器闸门合并为一次 SSH、媒体并发校验），
+34 单元批次约 4 秒跑完；单步脚本仍可单独使用。
 附件 `placement` 只能是 `question`/`option`/`answer`/`explanation`（写 `stem` 会静默 400）。
 `PATCH attachments` 与 `filterMetadata` 都是整体替换。确认与发布只能人工。发布前跑 `scripts/06-upload/publish_check.py`：只查 题干/答案/题型/知识点/子题完整性，解析为空不阻断（有就录、没有留空）。详见 `references/upload-api.md`。
 
@@ -95,6 +97,7 @@ python $S/06-upload/preflight_check.py --batch b.json --insert
 python $S/06-upload/publish_check.py --ids AH-2022
 python $S/06-upload/check_text.py --ids AH-2022
 python $S/06-upload/check_text.py --batch 06_batch/batch.json          # 上传前查
+python $S/06-upload/run_upload.py --batch b.json --media-dir media_upload/ --answers answers.json
 ```
 
 ## 汇总校验

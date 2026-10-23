@@ -16,6 +16,41 @@
 
 题组另加 `subquestions`；表格题另加 `materialBlocks`。
 
+## 6.1b 一条命令跑完（推荐）
+
+```bash
+python scripts/06-upload/run_upload.py --batch 06_batch/batch.json \
+    --media-dir media_upload/ --answers 01_source_ans/answers.json
+```
+
+依次跑 **本机体检（四项并行）→ 服务器闸门（一次会话）→ 媒体部署与校验 → POST → 写 receipt**，
+任一闸门失败即停，不会带病上传。加 `--no-post` 只体检不上传。
+
+| 阶段 | 做法 | 耗时（34 单元批次实测） |
+| --- | --- | --- |
+| 本机体检 | 排版/标签/阅读/发布闸门/答案 五项**并行** | 0.06s（原 0.2s 串行） |
+| 服务器闸门 | 查重 + 预检 + 同 ID 统计 + 远端媒体清单，**一次 scp 两个文件 + 一次 SSH** | 1.6–2.3s（原 3.8s，含复制 5MB 库） |
+| 媒体 | 只传**远端缺失**的文件（清单由闸门带回），URL **并发 + Range 只取首字节** | 1.2s（全部已就位时）；首次全量约 2.8s |
+| 上传 | `POST /api/uploads` | 0.1s |
+
+合计 **热路径 2.3s / 冷路径 4.3s**（原来逐脚本串行 6.9–8.9s）。
+
+**不要优化错地方**（实测）：
+
+| 操作 | 耗时 | 结论 |
+| --- | --- | --- |
+| SSH 往返 / `python3 -c pass` / `import backend` | 0.36 / 0.38 / 0.42s | 远程步骤有 0.4s 固定成本，**能合并就合并** |
+| 全库 379 行查重指纹 | 0.02s | 不是瓶颈，别加缓存 |
+| `current_knowledge_points`（522 节点） | 0.002s | 不是瓶颈 |
+| 20 个 URL 串行 curl → 并发+Range | 6.3s → 1.8s | RTT 主导，必须并发 |
+| 9 个小文件 scp / tar / 并行 scp | 1.9 / 1.3 / 6.1s | tar 略快但引入临时文件；**并行 scp 反而更慢** |
+
+注意：Windows 下 `ssh ... python3 -` 用 subprocess 的 `input=` 传脚本**不可靠**（实测 stdin 为空），
+所以闸门脚本与批次走 scp 文件而不是管道。
+
+细项校验仍可单独跑（`check_answers` / `check_text` / `check_tags` / `audit_reading` / `publish_check` /
+`check_duplicates` / `preflight_check`），`run_upload.py` 只是把它们编排起来。
+
 ## 6.2 自检（脚本化，别靠眼睛）
 
 ```bash

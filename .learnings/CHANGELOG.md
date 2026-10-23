@@ -40,3 +40,6 @@
 {"ts": "2026-10-23T17:05:00+08:00", "action": "add", "type": "script", "id": "audit-reading", "summary": "新增 audit_reading.py：查阅读类选项图/材料图/文章大意/子题空答案；preflight 同步加两条校验并报「选项图挂到单元上」", "target": "scripts/06-upload/audit_reading.py"}
 {"ts": "2026-10-23T17:05:00+08:00", "action": "fix", "type": "rule", "id": "reading-image-level", "summary": "阅读图片层级定稿：材料图挂单元 question、选项图挂子题 option+optionKey；材料是图时 material 留空不转写", "target": "references/stages/06-upload.md"}
 {"ts": "2026-10-23T17:05:00+08:00", "action": "fix", "type": "rule", "id": "patch-overwrite", "summary": "PATCH 三条铁律：subquestions/attachments/filterMetadata 整体替换要先读后合并；子题 textbookMappings 会带回旧知识点", "target": "references/stages/06-upload.md"}
+{"ts": "2026-10-23T17:40:00+08:00", "action": "add", "type": "script", "id": "run-upload", "summary": "新增 run_upload.py 上传流水线：本地体检并行、服务器闸门合并一次 SSH（stdin 传脚本与批次）、媒体并发 Range 校验；8.9s→3.9s", "target": "scripts/06-upload/run_upload.py"}
+{"ts": "2026-10-23T17:40:00+08:00", "action": "add", "type": "script", "id": "gate-remote", "summary": "新增 _gate_remote.py：一次会话内做查重 + 服务端校验器预检 + 同 ID 统计，不复制库", "target": "scripts/06-upload/_gate_remote.py"}
+{"ts": "2026-10-23T17:10:00+08:00", "action": "fix", "type": "script", "id": "run-upload-media-skip", "summary": "run_upload 热路径再优化：闸门带回远端媒体清单，只传缺失文件；实测 6.9s→2.3s", "target": "scripts/06-upload/run_upload.py"}
