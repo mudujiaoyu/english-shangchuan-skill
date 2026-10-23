@@ -67,7 +67,7 @@ PDF 无文字层（`extract_text()` 为空）→ 渲染 + OCR：先认拼版（8
 ### ⑥ 上传
 组装批次 → 答案比对 → 查重（ID/同年题号/内容指纹）→ 服务端校验器预检 → 部署媒体 → `POST /api/uploads`。
 附件 `placement` 只能是 `question`/`option`/`answer`/`explanation`（写 `stem` 会静默 400）。
-`PATCH attachments` 与 `filterMetadata` 都是整体替换。确认与发布只能人工。详见 `references/upload-api.md`。
+`PATCH attachments` 与 `filterMetadata` 都是整体替换。确认与发布只能人工。发布前跑 `scripts/06-upload/publish_check.py`：`missing_*` 五项任一命中都发不出去（解析是常见缺口）。详见 `references/upload-api.md`。
 
 ## 常用命令
 
@@ -82,6 +82,7 @@ python $S/04-knowledge/check_tags.py --ids AH-2022
 python $S/05-meta/assign_meta.py --batch b.json --report
 python $S/06-upload/check_duplicates.py --batch b.json
 python $S/06-upload/preflight_check.py --batch b.json --insert
+python $S/06-upload/publish_check.py --ids AH-2022
 ```
 
 ## 汇总校验

@@ -60,6 +60,29 @@ curl -X POST http://127.0.0.1:8089/api/uploads -H "Authorization: Bearer $KEY" \
 - **PATCH `attachments` 是整体覆盖**，先读现状再合并。
 - 确认与发布只能人工做；AI 调 confirm 会 403 `human_confirmation_required`。
 
+## 6.7 发布闸门（确认之后才生效）
+
+草稿确认后仍不能发布，除非这五项齐全：
+
+| 阻断码 | 含义 |
+| --- | --- |
+| `missing_stem` | 题干为空 |
+| `missing_answer` | 答案为空 |
+| `missing_explanation` | **解析为空** |
+| `missing_question_type` | 题型为空 |
+| `missing_knowledge` | 知识点为空 |
+
+```bash
+python scripts/06-upload/publish_check.py --ids AH-2022
+python scripts/06-upload/publish_check.py --batch b.json
+```
+
+该脚本区分「真缺子类」和「该主类本就没有子类」：`听力其他`、`听力短文理解`、`听力信息转换`
+在框架里没有子类，`subtypes` 留空是正常的，不算缺陷。
+
+**注意**：`explanation` 是发布硬门槛。原卷/答案册没有解析时，录入口径是留空不编造，
+但这批题就发布不了——要么补解析，要么等编辑补。
+
 ## 验收
 
 - [ ] 查重退出码 0

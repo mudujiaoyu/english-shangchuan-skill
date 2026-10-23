@@ -55,14 +55,41 @@ def main():
     ap.add_argument("--mode", choices=["copy", "link"], default="copy")
     ap.add_argument("--dest", default=DEFAULT_DEST)
     ap.add_argument("--skip-verify", action="store_true")
+    ap.add_argument("--from-skill", action="store_true",
+                    help="反向：把技能目录的改动收回仓库（改错了方向时用）")
+    ap.add_argument("--force", action="store_true", help="忽略“技能目录比仓库新”的保护")
     a = ap.parse_args()
 
     if not os.path.exists(os.path.join(REPO, "SKILL.md")):
         raise SystemExit("当前目录不是技能仓库根：%s" % REPO)
     dest = os.path.abspath(a.dest)
+
+    if a.from_skill:
+        if not os.path.exists(os.path.join(dest, "SKILL.md")):
+            raise SystemExit("技能目录不存在或不是技能：%s" % dest)
+        print("反向同步:", dest, "->", REPO)
+        n = copy_tree(dest, REPO)
+        print(f"已收回 {n} 个文件，请检查 git diff 后提交")
+        return
     print("源:   ", REPO)
     print("目标: ", dest)
     print("模式: ", a.mode)
+
+    # 保护：技能目录里有更新的文件时，直接同步会覆盖掉这些改动
+    if os.path.isdir(dest) and not os.path.islink(dest) and not a.force:
+        newest = max((os.path.getmtime(os.path.join(r, f))
+                      for r, _d, fs in os.walk(dest) for f in fs
+                      if f not in SKIP_EXT), default=0)
+        repo_newest = max((os.path.getmtime(os.path.join(r, f))
+                           for r, _d, fs in os.walk(REPO) for f in fs
+                           if ".git" not in r and os.path.splitext(f)[1] not in SKIP_EXT),
+                          default=0)
+        if newest > repo_newest + 60:
+            raise SystemExit(
+                "技能目录里有比仓库更新的文件，直接同步会覆盖它们。\n"
+                "  想保留那些改动：python sync_skill.py --from-skill\n"
+                "  确认要覆盖：    python sync_skill.py --force")
+
 
     remove_dest(dest)
     if a.mode == "link":
