@@ -45,6 +45,19 @@ if dup: fails.append(f"{dup} 个 ID 已存在")
 if len(ids) != len(set(ids)): fails.append("批次内 ID 重复")
 bad_src = {r.get("source_type") for r in items} - set(B.SOURCE_TYPES)
 if bad_src: fails.append(f"source_type 非法: {bad_src}")
+# 服务端 questions 表的 NOT NULL 列：这些字段传 None 会在确认时 500
+NOT_NULL_TEXT = ("stem", "answer", "explanation", "material", "curriculum", "type",
+                 "difficulty", "source_type", "institution", "school", "regional_version",
+                 "source", "location", "version", "authorization")
+NOT_NULL_LIST = ("options", "subquestions", "attachments", "knowledge", "knowledgeIds", "relations")
+for r in items:
+    for k in NOT_NULL_TEXT:
+        if r.get(k) is None:
+            fails.append(f"{r.get('id')}: {k} 为 None（确认时会 NOT NULL 报错，给空串）")
+    for k in NOT_NULL_LIST:
+        if r.get(k) is None:
+            fails.append(f"{r.get('id')}: {k} 为 None（应给 []）")
+
 bad_kind = {r.get("unit_kind") for r in items} - {None, "", "standalone", "group"}
 if bad_kind: fails.append(f"unit_kind 非法: {bad_kind}")
 

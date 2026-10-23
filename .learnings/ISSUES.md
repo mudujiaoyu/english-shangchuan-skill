@@ -282,3 +282,14 @@
 | 处置 | 61 条旧值统一改写为 `容易/适中/困难`；16 条缺 `difficultyValue` 的按标签补（容易 0.85 / 适中 0.72 / 困难 0.42）；技能里把写入口径固定为长标签，`publish_check.py` 遇到短码给提示 |
 | 结果 | 全库 difficulty 仅存 3 种：容易 117 / 适中 193 / 困难 1；`difficultyValue` 无空值 |
 
+## 31. 确认接口 500：NOT NULL constraint failed: questions.material
+
+| 项 | 内容 |
+| --- | --- |
+| 现象 | 2023 批次在后台点「逐题确认」报 server error，接口 500 |
+| 日志 | `POST error IntegrityError('NOT NULL constraint failed: questions.material')` |
+| 根因 | 上传载荷里没有 `material` 字段，暂存时被存成 `None`；确认时按原值 INSERT，撞上 NOT NULL。同类字段还有 `curriculum` / `institution` / `school` / `regional_version`，以及 `subquestions` / `relations` 为 None |
+| 为什么没提前发现 | `preflight_check.py` 只回放服务端的 normalize 函数，normalize 会把这些字段兜成空串，所以没暴露 |
+| 处置 | 载荷里把这些字段统一给空串、数组给 `[]`；用「复制库 + 复刻确认 INSERT」模拟，34/34 通过；`preflight_check.py` 增加 NOT NULL 字段为 None 的校验 |
+| 教训 | 预检要覆盖**确认接口的写入路径**，不能只跑 normalize；上线前用 DB 副本插一遍最稳 |
+

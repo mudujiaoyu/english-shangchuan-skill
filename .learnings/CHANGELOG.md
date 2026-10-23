@@ -32,4 +32,5 @@
 {"ts": "2026-10-23T14:10:00+08:00", "action": "edit", "type": "rule", "id": "publish-gate", "summary": "解析不再作为发布阻断项；publish_check 改为提示；同步阶段文档与上传口径", "target": "scripts/06-upload/publish_check.py"}
 {"ts": "2026-10-23T14:35:00+08:00", "action": "edit", "type": "script", "id": "publish-check", "summary": "publish_check 补齐组题两项校验；250 个安徽单元经服务端真实 publish_blockers 复测 0 阻断", "target": "scripts/06-upload/publish_check.py"}
 {"ts": "2026-10-23T14:40:00+08:00", "action": "fix", "type": "rule", "id": "difficulty-label", "summary": "difficulty 统一为 容易/适中/困难；61 条旧短码归一，16 条补 difficultyValue；publish_check 提示非标准写法", "target": "references/difficulty-category.json"}
+{"ts": "2026-10-23T16:20:00+08:00", "action": "fix", "type": "script", "id": "preflight-not-null", "summary": "preflight 增加 NOT NULL 空值校验；2023 批次补齐 material/curriculum 等字段后重新上传", "target": "scripts/06-upload/preflight_check.py"}
 ```
