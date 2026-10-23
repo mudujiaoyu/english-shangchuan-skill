@@ -16,7 +16,7 @@ SKILL = os.path.dirname(HERE)
 
 STAGES = [
     ("01-extract", "01-extract", ["extract_docx.py", "pdf_extract.py"]),
-    ("02-audio", "02-audio", ["cut_audio.py"]),
+    ("02-audio", "02-audio", ["cut_audio.py", "extract_script.py"]),
     ("03-type-map", None, []),
     ("04-knowledge", "04-knowledge", ["find_kp.py", "check_tags.py", "apply_type_tags.py",
                                       "fill_subtags.py", "spell_pos.py", "retag_drafts.py", "assign_angle.py"]),

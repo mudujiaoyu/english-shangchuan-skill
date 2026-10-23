@@ -77,6 +77,7 @@ S=~/.agents/skills/mudu-question-upload/scripts
 
 python $S/01-extract/extract_docx.py 原卷.docx 01_source/
 python $S/01-extract/pdf_extract.py --pdf 试卷.pdf --out 01_source/ --cols-per-page 1
+python $S/02-audio/extract_script.py --docx 答案.docx --year 2022 --out ts.json
 python $S/02-audio/cut_audio.py --audio 听力.mp3 --anchors 40.1,66.6 --intro-end 29.1 --out 02_audio/ --verify
 python $S/04-knowledge/find_kp.py 被动语态
 python $S/04-knowledge/check_tags.py --ids AH-2022

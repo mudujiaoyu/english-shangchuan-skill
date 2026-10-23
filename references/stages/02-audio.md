@@ -29,7 +29,26 @@ python scripts/cut_audio.py --audio 听力.mp3 --anchors 40.1,66.6 --ends ... --
 - `--transcribe` 看第一条正文开口时间 → `--intro-end 29.1` 丢弃之前全部；
 - `--trim-intro` 只吸掉首段前的死气，**不认识试音**。
 
-## 2.3 坑
+## 2.3 听力材料（录音稿）
+
+答案册末尾通常有「附:听力录音材料」，是官方录音稿，按 Ⅰ/Ⅱ/Ⅲ/Ⅳ 分节：
+
+```bash
+python scripts/02-audio/extract_script.py --docx 答案.docx --list
+python scripts/02-audio/extract_script.py --docx 答案.docx --year 2022 --out ts.json
+```
+
+产出 `short[5] / long[2] / passage / conversion`，直接写入对应组题的 `material`：
+
+| 单元 | 用哪段 |
+| --- | --- |
+| 长对话（6~7、8~10） | `long[0]`、`long[1]` |
+| 短文理解 | `passage` |
+| 信息转换 | `conversion`（可拼在表格标题后） |
+
+短对话是独立题不是组题，默认不写 material（避免题卡上出现录音稿）。
+
+## 2.4 坑
 
 - **转写时间戳不可靠**（试音是单音，VAD 会切出几十个碎片）：用静音表定骨架，转写只用来找题号。
 - 同一题读两遍，按静音切会把两遍劈开 → 切点要落在题间的长静音里。
