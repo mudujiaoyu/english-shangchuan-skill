@@ -100,7 +100,11 @@ python scripts/04-knowledge/assign_angle.py --ids AH-2022 --apply
 python scripts/04-knowledge/assign_angle.py --all --apply
 ```
 
-组题按「多数子题的角度」定组级标签；`听力关键词语选择` 不适用（对照表不含设题角度）。
+组题（长对话/短文/信息转换）**保留组内出现过的所有角度**，按出现次数排序，例如一组长对话含
+「When / Where / What do you think of」，组级就同时带 细节理解、地点推断、推理判断——
+这样按任一角度筛选都能命中该组。子题各自的精确角度记在子题 `knowledge` 里。
+
+`听力关键词语选择` 不适用（对照表不含设题角度）。
 
 ## 四之三、听力关键词语选择
 

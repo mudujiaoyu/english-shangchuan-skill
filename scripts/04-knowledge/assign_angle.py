@@ -80,6 +80,8 @@ def main():
     ap.add_argument("--ids", default="")
     ap.add_argument("--all", action="store_true")
     ap.add_argument("--apply", action="store_true")
+    ap.add_argument("--recompute", action="store_true",
+                    help="重算：先去掉已有的 设题角度/听力/*，再按子题重打（默认只补缺失）")
     a = ap.parse_args()
     prefix = "" if a.all else a.ids
 
@@ -93,24 +95,28 @@ def main():
         if qt == "听力关键词语选择":
             continue
         names = json.loads(kj or "[]")
-        if any(n in angles for n in names):
+        had = [n for n in names if n in angles]
+        if had and not a.recompute:
             continue
         subs = json.loads(sj or "[]")
         texts = [s.get("stem") or "" for s in subs] or [stem or ""]
-        main_angle = Counter(angle_of(t) for t in texts).most_common(1)[0][0]
-        plan.append((uid, qt, main_angle, names, json.loads(kid or "[]")))
+        # 组级保留所有出现过的角度（按出现次数排序），这样按任一角度都能筛到该组
+        picked = [ang for ang, _n in Counter(angle_of(t) for t in texts).most_common()]
+        base_names = [n for n in names if n not in angles]
+        base_ids = [i for i in json.loads(kid or "[]") if i not in {path2id[angles[k]] for k in angles}]
+        plan.append((uid, qt, picked, base_names, base_ids))
 
-    print(f"待补 {len(plan)} 个单元 | 角度分布: {dict(Counter(p[2] for p in plan))}")
-    for uid, qt, ang, _n, _i in plan[:8]:
-        print(f"  {uid} [{qt}] -> {ang}")
+    print(f"待处理 {len(plan)} 个单元")
+    for uid, qt, angs, _n, _i in plan[:8]:
+        print(f"  {uid} [{qt}] -> {' + '.join(angs)}")
     if not a.apply:
         print("\n干跑；加 --apply 执行")
         return 0
 
     ok = fail = 0
-    for uid, qt, ang, names, ids in plan:
-        body = json.dumps({"knowledge": names + [ang],
-                           "knowledgeIds": ids + [path2id[angles[ang]]]},
+    for uid, qt, angs, names, ids in plan:
+        body = json.dumps({"knowledge": names + angs,
+                           "knowledgeIds": ids + [path2id[angles[x]] for x in angs]},
                           ensure_ascii=False).encode("utf-8")
         req = urllib.request.Request(f"{BASE}/questions/{uid}", data=body, method="PATCH",
                                      headers={"Authorization": f"Bearer {KEY}",
