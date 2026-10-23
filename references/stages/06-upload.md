@@ -60,6 +60,16 @@ curl -X POST http://127.0.0.1:8089/api/uploads -H "Authorization: Bearer $KEY" \
 - **PATCH `attachments` 是整体覆盖**，先读现状再合并。
 - 确认与发布只能人工做；AI 调 confirm 会 403 `human_confirmation_required`。
 
+## 6.6b 排版体检
+
+```bash
+python scripts/06-upload/check_text.py --ids AH
+python scripts/06-upload/check_text.py            # 全库
+```
+
+查：全角空格空档、双空格、括号不配对/中英混用、破折号、中文标点入英文句、引号不配对、
+重复标点、下划线过短、选项标点混用（`A．` 应为 `A.`）。只报告，不阻断。
+
 ## 6.7 发布闸门（确认之后才生效）
 
 草稿确认后仍不能发布，除非这五项齐全：

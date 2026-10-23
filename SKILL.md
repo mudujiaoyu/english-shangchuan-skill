@@ -84,6 +84,7 @@ python $S/05-meta/assign_meta.py --batch b.json --report
 python $S/06-upload/check_duplicates.py --batch b.json
 python $S/06-upload/preflight_check.py --batch b.json --insert
 python $S/06-upload/publish_check.py --ids AH-2022
+python $S/06-upload/check_text.py --ids AH-2022
 ```
 
 ## 汇总校验
