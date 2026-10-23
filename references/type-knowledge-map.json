@@ -177,6 +177,56 @@
      "show": "leaf",
      "note": "对应听力子项"
     }
+   ],
+   "variants": [
+    {
+     "name": "听力关键词语选择",
+     "dims": [
+      {
+       "dim": "语音",
+       "branch": "语音",
+       "show": "below-root",
+       "note": "一级标题及子标题"
+      },
+      {
+       "dim": "词汇",
+       "branch": "词汇",
+       "show": "below-root",
+       "note": "一级标题及子标题"
+      },
+      {
+       "dim": "答案考点",
+       "branch": "词汇/语法",
+       "show": "leaf",
+       "note": ""
+      }
+     ],
+     "detect": "题干含「听到的单词/短语」或选项为音近词"
+    },
+    {
+     "name": "情景反应",
+     "dims": [
+      {
+       "dim": "语用",
+       "branch": "语用",
+       "show": "leaf",
+       "note": "对应标题"
+      }
+     ],
+     "detect": "选项为应答语（Have fun. / Never mind. 等）"
+    },
+    {
+     "name": "音标辨识",
+     "dims": [
+      {
+       "dim": "语音",
+       "branch": "语音",
+       "show": "below-root",
+       "note": "一级标题及子标题"
+      }
+     ],
+     "detect": "题干或选项含 /u/ 之类音标"
+    }
    ]
   },
   "语音题": {
@@ -586,6 +636,12 @@
      "note": "按实际话题判定"
     },
     {
+     "dim": "阅读技能",
+     "branch": "阅读技能",
+     "show": "leaf",
+     "note": "若为阅读理解类任务"
+    },
+    {
      "dim": "词汇",
      "branch": "词汇",
      "show": "below-root",
@@ -889,5 +945,11 @@
    "主题/（按实际话题判定）",
    "阅读技能/（若为理解类任务）"
   ]
+ },
+ "changed_rows": {
+  "听力关键词语选择": {
+   "date": "2026.10.23",
+   "by": "王坤"
+  }
  }
 }

@@ -111,6 +111,9 @@ def main():
                 branches.update({"词汇", "语法"})
             else:
                 branches.add(b)
+        for v in cfg.get("variants", []):
+            for d in v.get("dims", []):
+                branches.update({"词汇", "语法"} if d["branch"] == "词汇/语法" else {d["branch"]})
         allowed[qt] = branches
     rows = fetch(prefix)
     empty, forbidden, coarse = [], [], defaultdict(list)
