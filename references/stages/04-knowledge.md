@@ -72,6 +72,7 @@ python scripts/apply_type_tags.py --batch b.json --out b2.json   # 按题型补�
 python scripts/fill_subtags.py --ids AH-2022 --list      # 找空子题
 python scripts/spell_pos.py --list                       # 拼写题列答案
 python scripts/check_tags.py --ids AH-2022               # 体检
+python scripts/04-knowledge/assign_angle.py --ids AH-2022 --apply   # 补听力设题角度
 ```
 
 ## 验收

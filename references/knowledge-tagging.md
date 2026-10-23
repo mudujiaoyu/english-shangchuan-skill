@@ -84,6 +84,24 @@
 - **阅读类题型**（阅读理解、任务型阅读、读写综合）→ 打 `设题角度/阅读/*`
 - 「细节理解」在两边各有一个，**必须带上级**，`check_tags.py` 会拦下不带 scope 的写法。
 
+### 设题角度怎么定（听力）
+
+| 设问特征 | 设题角度 |
+| --- | --- |
+| where / which place | 地点推断 |
+| who / whose / whom / relationship | 人物关系 |
+| why / what can we learn / suggest / infer / mean / think of | 推理判断 |
+| main idea / mainly / best title / topic | 主旨大意 |
+| 其余（含信息转换空题干、判断、排序） | 细节理解 |
+
+```bash
+python scripts/04-knowledge/assign_angle.py --ids AH-2022          # 干跑
+python scripts/04-knowledge/assign_angle.py --ids AH-2022 --apply
+python scripts/04-knowledge/assign_angle.py --all --apply
+```
+
+组题按「多数子题的角度」定组级标签；`听力关键词语选择` 不适用（对照表不含设题角度）。
+
 ## 四之三、听力关键词语选择
 
 27 类主类之一（框架 1.1 已收录），打标：`语音/基本读音/<子项>` + `词汇/词汇辨析/<词性>` +答案考点。
