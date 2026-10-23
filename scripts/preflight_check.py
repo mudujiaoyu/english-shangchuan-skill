@@ -48,6 +48,21 @@ if bad_src: fails.append(f"source_type 非法: {bad_src}")
 bad_kind = {r.get("unit_kind") for r in items} - {None, "", "standalone", "group"}
 if bad_kind: fails.append(f"unit_kind 非法: {bad_kind}")
 
+ok_diff = {None, "", "易", "中", "难", "容易", "适中", "困难"}
+bad_diff = {r.get("difficulty") for r in items} - ok_diff
+if bad_diff: fails.append(f"difficulty 非法: {bad_diff}")
+ok_cat = {"优选题", "易错题"}
+bad_cat = {c for r in items for c in (r.get("filterMetadata") or {}).get("categories") or []} - ok_cat
+if bad_cat: fails.append(f"categories 非法: {bad_cat}")
+for r in items:
+    dv = (r.get("filterMetadata") or {}).get("difficultyValue")
+    if dv is not None and not (isinstance(dv, (int, float)) and 0 <= dv <= 1):
+        fails.append(f"{r.get('id')}: difficultyValue 越界 {dv}")
+missing_diff = [r.get("id") for r in items
+                if not r.get("difficulty") and (r.get("filterMetadata") or {}).get("difficultyValue") is None]
+if missing_diff:
+    print("WARN 待编辑定难度:", len(missing_diff), missing_diff[:8])
+
 import urllib.request
 fw = json.load(urllib.request.urlopen("http://127.0.0.1:89/filter-framework.json"))
 valid_sub = {t["name"]: set(t.get("subtypes") or []) for t in fw["question_types"]}

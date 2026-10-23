@@ -243,6 +243,34 @@ python scripts/extract_docx.py "<原卷.docx>" "<输出目录>"
 
 **不要**在脚本里写死题型→知识点的映射，一切从 JSON 读。
 
+### 7.9 难度与分类（录入时就要写）
+
+文档（`developer.md`）规定：
+
+| 字段 | 取值 | 说明 |
+| --- | --- | --- |
+| `difficulty` | `易` / `中` / `难` | **由编辑最终确认**；发布校验缺它会报 `missing_difficulty` |
+| `filterMetadata.difficultyValue` | 0~1 | `>=0.80` 容易、`>=0.50 且 <0.80` 适中、`<0.50` 困难 |
+| `filterMetadata.categories` | 数组 | 只允许 `优选题`、`易错题`，可与题源不同维度并存 |
+
+**文档明确禁止**：「未知值保留空数组、空字符串或 `difficultyValue: null`，不要根据题型猜造标注。」
+所以做法是——**按可观测特征打分，给出依据，并列出待人工确认项**：
+
+```bash
+python scripts/assign_meta.py --batch b.json --report          # 看分布与依据
+python scripts/assign_meta.py --batch b.json --out b_meta.json # 写回批次
+python scripts/assign_meta.py --ids AH-2021 --apply            # 补已入库草稿
+```
+
+- 特征：词数、平均句长、长词比例、选项同质度、知识点（推断/主旨/辨析/从句…）。
+- 题型只做 ±0.05 微调，**不能单独定档**；书面表达/拼写/翻译这类「题目要求」不计入阅读量，走题型基准。
+- **听力/语音没有听力稿时留空**（`difficultyValue: null`），列入待编辑清单，不硬填。
+- 分类只在命中时打（词汇辨析/固定搭配/时态从句 → 易错题；推理/主旨/标题/写作手法 → 优选题），否则空数组。
+- 规则在 `references/difficulty-category.json`，改规则不改脚本。
+
+**PATCH 注意**：`filterMetadata` 是**整体替换**，补 `categories` 时必须把 `subtypes`、`region` 等一起带上，
+脚本已按「先读后合并」实现。
+
 ### 7.8 上传前打标顺序
 
 ```bash
@@ -268,6 +296,7 @@ python scripts/check_duplicates.py --batch b_tagged.json                # 查重
 - [ ] 每个 `answer` 非空、无前缀；`explanation` 无前缀
 - [ ] 答案与「参考答案」逐题比对，**不一致数必须为 0**
 - [ ] 题组都有 `subquestions`；信息转换有 `materialBlocks`
+- [ ] `difficulty` 与 `filterMetadata.categories` 已按 §7.9 填（或明确列入待编辑清单）
 - [ ] 题型都在 26 主类内，且 `filterMetadata.subtypes` 已填、属于该主类的子类（无子类的题型留空数组）
 - [ ] `len(json.dumps(...).encode("utf-8")) < 2_000_000`（实测 96 题约 56 KB，远没到上限）
 
@@ -343,6 +372,7 @@ curl -X POST http://127.0.0.1:8089/api/uploads \
 | `scripts/retag_drafts.py` | 已入库草稿按题型规则重打（禁标纠正 + 维度兜底） | `--ids AH-2020 --apply` |
 | `scripts/pdf_extract.py` | 无文字层 PDF → 分栏文本 + 选项图/表格切图 + 题号归集 | `--pdf x.pdf --out out/ --cols-per-page 1` |
 | `scripts/check_duplicates.py` | 上传前查重（ID / 同题号 / 内容指纹），有重复退出码 1 | `python check_duplicates.py --batch b.json` |
+| `scripts/assign_meta.py` | 按特征算难度/分类，输出依据与待定清单 | `--batch b.json --report` |
 | `scripts/preflight_check.py` | **上传前用服务端校验器回放整批**，`--insert` 还会在库副本上模拟确认写入 | `python preflight_check.py --batch b.json --insert` |
 | `scripts/cut_audio.py` | 停顿分层 / 转写 / 按锚点切段 / 去试音 / 回读验证 | `--report` → `--transcribe` → `--anchors ... --intro-end ... --out dir --verify` |
 | `scripts/patch_attachments.py` | 确认后把附件合并进草稿（先 dry-run） | `--batch batch.json --current current.json` |
