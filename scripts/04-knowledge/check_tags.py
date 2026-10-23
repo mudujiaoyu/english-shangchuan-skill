@@ -28,6 +28,7 @@ def _skill_root():
 
 SKILL = _skill_root()
 INDEX = os.path.join(SKILL, "references", "knowledge-catalog.json")
+MAP = os.path.join(SKILL, "references", "type-knowledge-map.json")
 SSH_KEY = os.path.expanduser(r"~\.ssh\mudu_gd")
 REMOTE = "ubuntu@101.43.1.57"
 
@@ -88,6 +89,8 @@ print(json.dumps(rows, ensure_ascii=False))
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--ids", default="")
+    ap.add_argument("--strict", action="store_true",
+                    help="越界维度也算失败（默认只报告，因为历史数据按旧规则打过标）")
     a = ap.parse_args()
     prefix = a.ids or ""
 
@@ -97,8 +100,21 @@ def main():
     kids = Counter(p.rsplit("/", 1)[0] for p in paths if "/" in p)
     internal = {p for p in paths if kids.get(p)}
 
+    by_type = json.load(open(MAP, encoding="utf-8"))["by_type"]
+    # 对照表给出的「可考维度」＝允许范围；不在范围内的标签判为越界
+    allowed = {}
+    for qt, cfg in by_type.items():
+        branches = set()
+        for d in cfg.get("dims", []):
+            b = d["branch"]
+            if b == "词汇/语法":
+                branches.update({"词汇", "语法"})
+            else:
+                branches.add(b)
+        allowed[qt] = branches
     rows = fetch(prefix)
     empty, forbidden, coarse = [], [], defaultdict(list)
+    out_of_scope = []
     for uid, qtype, kj, kid, sj in rows:
         names = json.loads(kj or "[]")
         ids = json.loads(kid or "[]")
@@ -106,14 +122,26 @@ def main():
             empty.append((uid, qtype))
             continue
         cur = [id2p.get(i) for i in ids if id2p.get(i)]
+        # 该题型按对照表应带的维度，缺哪个
+        ok_branches = allowed.get(qtype)
+        if ok_branches:
+            for p in cur:
+                root = p.split("/")[0]
+                if root not in ok_branches:
+                    out_of_scope.append((uid, qtype, p))
         for p in cur:
             if any(p.startswith(b) for b in FORBIDDEN.get(qtype, ())):
                 forbidden.append((uid, qtype, p))
-            if p in internal and p not in ALLOWED_INTERNAL and p not in PENDING_INTERNAL:
+            if p in internal and p not in ALLOWED_INTERNAL:
                 coarse[p].append(f"{uid}[{qtype}]")
 
     print(f"扫描 {len(rows)} 个单元（前缀：{prefix or '全库'}）")
-    print(f"空标签 {len(empty)} | 禁标维度 {len(forbidden)} | 非叶子标签 {sum(len(v) for v in coarse.values())}")
+    print(f"空标签 {len(empty)} | 禁标维度 {len(forbidden)} | 越界维度 {len(out_of_scope)} "
+          f"| 非叶子标签 {sum(len(v) for v in coarse.values())}")
+    if out_of_scope:
+        print("\n超出对照表范围（该题型不考这个维度）：")
+        for uid, qt, p in out_of_scope[:12]:
+            print(f"  {uid}[{qt}]  {p}")
     if forbidden:
         print("\n禁标维度：")
         for uid, qt, p in forbidden[:12]:
@@ -126,7 +154,10 @@ def main():
         print("\n空标签：")
         for uid, qt in empty[:10]:
             print(f"  {uid}[{qt}]")
-    return 0 if not (empty or forbidden or coarse) else 1
+    hard = bool(empty or coarse or forbidden)
+    if a.strict:
+        hard = hard or bool(out_of_scope)
+    return 1 if hard else 0
 
 
 if __name__ == "__main__":
