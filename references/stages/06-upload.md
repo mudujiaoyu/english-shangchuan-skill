@@ -56,6 +56,7 @@ python scripts/06-upload/run_upload.py --batch 06_batch/batch.json \
 ```bash
 python scripts/06-upload/check_answers.py --batch b.json --answers 01_source_ans/answers.json
 python scripts/06-upload/check_text.py --batch b.json
+python scripts/06-upload/check_structure.py --batch b.json    # 结构：unit_kind / 子题 / 材料
 python scripts/04-knowledge/check_tags.py --batch b.json
 python scripts/06-upload/audit_reading.py --batch b.json      # 阅读：选项图/材料图/大意/空答案
 ```
@@ -158,6 +159,35 @@ python scripts/06-upload/publish_check.py --batch b.json
 1. 从句中截取会带出**单边引号**（`“We’ve seen a growing　42　in learning Chinese.`），
    `check_text.py --batch` 会报「引号不配对」。截完把不成对的引号去掉，别留着。
 2. 空档标记写成 `__31__` 时会被「下划线过短」误报；`check_text.py` 已把 `__数字__` 先统一按 6 个下划线处理。
+
+## 6.2c 结构一旦入库就改不了：建批前必须先过 check_structure
+
+服务端对草稿的能力边界（实测 2026-10-23）：
+
+| 想改什么 | PATCH | 说明 |
+| --- | --- | --- |
+| 题干/答案/解析/材料/选项 | ✅ | 普通字段直接改 |
+| `subquestions`（子题内容） | ✅ | 整体替换，要先读后合并 |
+| 知识点 / 附件 / filterMetadata | ✅ | 整体替换 |
+| `unit_kind`（standalone ↔ group） | ❌ | 不在 PATCH 白名单，改了也不生效 |
+| 删除草稿 | ❌ | `DELETE /api/questions/{id}` 对 harness 返 403 `human_delete_required` |
+
+推论：**「独立题误建成题组」「题组误建成 5 道独立题」这类结构错误，一旦确认入库，
+就只能请人工在后台删除后重传。** 而 `publish_check` 只查「group 缺材料」，
+查不出「standalone 带了子题」——所以必须在**上传前**用 `check_structure.py` 拦。
+
+判据：standalone 有 subquestions、group 缺 material/子题、子题序号不连续、
+组题的选项图挂在单元上（应挂子题）。
+
+`run_upload.py` 已把它并进本机并行体检，单跑也行：
+
+```bash
+python scripts/06-upload/check_structure.py --batch 06_batch/b.json
+python scripts/06-upload/check_structure.py --ids RJ8A
+```
+
+**改结构的正确姿势**：一旦发现单元粒度定错了，不要试图 PATCH 补救——
+请人工删掉那几条草稿，重新按正确粒度 `POST /api/uploads`。
 
 **PATCH 改草稿的三条铁律**（都是整体覆盖，不是合并）：
 1. `subquestions` 整体替换——只想改某题的附件/知识点，也要把**其余子题的当前值**原样带回，

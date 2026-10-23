@@ -47,3 +47,5 @@
 {"ts": "2026-10-23T17:35:00+08:00", "action": "add", "type": "script", "id": "verify-seconds", "summary": "cut_audio 新增 --verify-seconds：只回读每段前 N 秒，2026 卷切分+校验 11 分钟→9 秒", "target": "scripts/02-audio/cut_audio.py"}
 {"ts": "2026-10-23T18:10:00+08:00", "action": "add", "type": "script", "id": "split-by-year", "summary": "extract_docx 新增 --split-by-year：合并卷按卷首切年、图片按年归属、index.json 记账；2026 段与人工截段逐行一致", "target": "scripts/01-extract/extract_docx.py"}
 {"ts": "2026-10-23T18:10:00+08:00", "action": "fix", "type": "script", "id": "gate-existing-vs-dup", "summary": "闸门区分「ID 已在库」与「内容重复」；整批已入库时判无需再传，不再误报失败", "target": "scripts/06-upload/_gate_remote.py"}
+{"ts": "2026-10-23T18:30:00+08:00", "action": "add", "type": "script", "id": "check-structure", "summary": "新增 check_structure.py：上传前查 unit_kind/子题/材料/选项图层级；已接入 run_upload 本机并行体检", "target": "scripts/06-upload/check_structure.py"}
+{"ts": "2026-10-23T18:30:00+08:00", "action": "fix", "type": "rule", "id": "structure-immutable", "summary": "记录服务端能力边界：unit_kind 不可 PATCH、草稿不可 harness 删除；结构错误只能人工删后重传", "target": "references/stages/06-upload.md"}

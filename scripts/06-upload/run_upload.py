@@ -152,6 +152,7 @@ def main():
     if not a.skip_local:
         t = step("本机体检（并行）")
         jobs = [("排版 check_text", "06-upload/check_text.py", ["--batch", batch_path]),
+                ("结构 check_structure", "06-upload/check_structure.py", ["--batch", batch_path]),
                 ("标签 check_tags", "04-knowledge/check_tags.py", ["--batch", batch_path]),
                 ("阅读 audit_reading", "06-upload/audit_reading.py", ["--batch", batch_path]),
                 ("发布闸门 publish_check", "06-upload/publish_check.py", ["--batch", batch_path])]
