@@ -524,3 +524,22 @@
 | 根因 | `extract_docx.py` 把表格展开成 `a \| b \| c` 逐行文本，**合并关系丢失**；我图省事直接沿用展开结果，没回头还原 |
 | 处置 | `materialBlocks` 写 `type=table` + `variant=""`，用 `rowspan` 表达「The first day（17 July）」跨 3 行、`colspan` 表达标题跨 3 列；`material` 保留平铺文本作兜底 |
 | 预防 | constraints.md E5–E8 与 01-extract「表格：提取时要留住结构」：判断依据是**原卷是不是真表格**，不是「文字读起来像不像列表」；判断不了就回 docx 数合并关系 |
+
+
+## 54. 完成句子「中文上行、英文下行」：数据是两行，页面显示成一行
+
+| 项 | 内容 |
+| --- | --- |
+| 现象 | 题干里已经写了 `中文\n英文`（库里 `repr` 确认含 `\n`），但题库卡片上仍挤在一行 |
+| 根因 | 换行只在 `white-space: pre-wrap` 的元素里生效。试卷视图 `.paper-stem` 有这条，**题库卡片是 `<button class="selection-card-stem">`，唯独它漏了**（`.selection-card-stem > div` 有，但 stem 文本直接放在 button 里，没有子 div）。前端是 `esc(stem)`，`\n` 被 HTML 折叠成一个空格 |
+| 处置 | 数据侧统一 `zh + "\n" + en`（D14）；渲染侧在 `static/styles.css` 追加 `.selection-card-stem { white-space: pre-wrap; }`（备份 `styles.css.bak-20261023-prewrap`） |
+| 预防 | constraints.md B10 + D15：需要视觉换行必须在数据里放真实 `\n`，**不能用 `<br>`（会被 esc 转义）或全角空格（会被折叠）**；同时确认目标元素的 CSS 有 `pre-wrap` |
+
+## 55. 木牍后台的端口与静态资源路径（自查用）
+
+| 项 | 内容 |
+| --- | --- |
+| 现象 | 要验证 CSS 是否生效，先按 `http://127.0.0.1:8089/static/styles.css` 试，全部 404，误以为改错了文件 |
+| 根因 | ① 我本地 `127.0.0.1:8089` 是隧道，服务器侧实际是 **nginx `127.0.0.1:89` → 后端 `127.0.0.1:18901`**；② 静态资源挂在**根路径** `/styles.css`、`/app.js`（index.html 写的是 `./styles.css?v=…`），**没有 `/static/` 前缀**；③ 服务器上 80/81/82/88 是别的站点，别拿来验 |
+| 处置 | 验证顺序：`ss -ltnp` 看后端端口 → `/etc/nginx/sites-enabled/mudu-quiz-89` 看反代 → 请求 `http://127.0.0.1:89/styles.css` 比对字节数与关键字 |
+| 预防 | 本条目记下这组映射；改前端资源后按此路径验证，勿用 `/static/*` |

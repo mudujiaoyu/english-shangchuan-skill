@@ -54,3 +54,6 @@
 {"ts": "2026-10-23T19:10:00+08:00", "action": "fix", "type": "script", "id": "check-text-fill-in", "summary": "check_text 只对完形填空校验 4 选项；选词/短文/教材语篇属填空类无选项（原报 34 处假阳性）", "target": "scripts/06-upload/check_text.py"}
 {"ts": "2026-10-23T19:10:00+08:00", "action": "add", "type": "rule", "id": "sub-stem-three-forms", "summary": "组题子题 stem 三种写法：带选项写题号/无选项用 ______/小题配图挂子题；补各题型允许维度清单", "target": "references/constraints.md"}
 {"ts": "2026-10-23T19:30:00+08:00", "action": "add", "type": "rule", "id": "table-material-blocks", "summary": "原卷材料是表格时用 materialBlocks 的 type=table 还原（colspan/rowspan），不压成纯文本；约束总表补 E5-E8 与 01-extract 表格小节", "target": "references/constraints.md"}
+{"ts": "2026-10-23T19:40:00+08:00", "action": "add", "type": "doc", "id": "workbook-recipes", "summary": "新增 references/workbook-recipes.md：同步练习册逐题型配方（粒度判据/字段/子题 stem/知识点维度/返工点）", "target": "references/workbook-recipes.md"}
+{"ts": "2026-10-23T19:40:00+08:00", "action": "fix", "type": "rule", "id": "two-line-stem", "summary": "完成句子题干两行（中文上行）；补 B10/D14/D15 与前端 .selection-card-stem pre-wrap", "target": "references/constraints.md"}
+{"ts": "2026-10-23T19:40:00+08:00", "action": "fix", "type": "rule", "id": "id-range-full", "summary": "ID 段位表扩到 001-1299 十二个题型区间", "target": "references/constraints.md"}

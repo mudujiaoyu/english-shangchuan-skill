@@ -37,7 +37,7 @@ STAGES = [
 REFS = ["structure.md", "pdf-extraction.md", "audio-splitting.md", "type-subtypes.md",
         "knowledge-tagging.md", "knowledge-matching-rules.md", "knowledge-catalog.json",
         "type-knowledge-map.json", "difficulty-category.json", "upload-api.md",
-        "constraints.md"]
+        "constraints.md", "workbook-recipes.md"]
 
 
 def frontmatter(path):
