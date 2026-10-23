@@ -1,0 +1,35 @@
+{
+ "skill": "mudu-question-upload",
+ "stages": [
+  {
+   "order": 1,
+   "slug": "01-extract",
+   "doc": "references/stages/01-extract.md"
+  },
+  {
+   "order": 2,
+   "slug": "02-audio",
+   "doc": "references/stages/02-audio.md"
+  },
+  {
+   "order": 3,
+   "slug": "03-type-map",
+   "doc": "references/stages/03-type-map.md"
+  },
+  {
+   "order": 4,
+   "slug": "04-knowledge",
+   "doc": "references/stages/04-knowledge.md"
+  },
+  {
+   "order": 5,
+   "slug": "05-meta",
+   "doc": "references/stages/05-meta.md"
+  },
+  {
+   "order": 6,
+   "slug": "06-upload",
+   "doc": "references/stages/06-upload.md"
+  }
+ ]
+}
