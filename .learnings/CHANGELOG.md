@@ -34,3 +34,6 @@
 {"ts": "2026-10-23T14:40:00+08:00", "action": "fix", "type": "rule", "id": "difficulty-label", "summary": "difficulty 统一为 容易/适中/困难；61 条旧短码归一，16 条补 difficultyValue；publish_check 提示非标准写法", "target": "references/difficulty-category.json"}
 {"ts": "2026-10-23T16:20:00+08:00", "action": "fix", "type": "script", "id": "preflight-not-null", "summary": "preflight 增加 NOT NULL 空值校验；2023 批次补齐 material/curriculum 等字段后重新上传", "target": "scripts/06-upload/preflight_check.py"}
 ```
+{"ts": "2026-10-23T16:45:00+08:00", "action": "add", "type": "skill", "id": "answers-gate", "summary": "新增 extract_answers.py / check_answers.py：答案册机器抽表 + 批次逐题比对（客观硬拦、主观提示、空答案硬拦），smoke 带正反样例", "target": "scripts/06-upload/check_answers.py"}
+{"ts": "2026-10-23T16:45:00+08:00", "action": "add", "type": "skill", "id": "img-markers", "summary": "extract_docx.py 在正文留 [IMG] 位置标记；新增 contact_sheet.py 出缩略图清单，图片归属不再靠序号反推", "target": "scripts/01-extract/extract_docx.py"}
+{"ts": "2026-10-23T16:45:00+08:00", "action": "fix", "type": "rule", "id": "doc-consistency", "summary": "口径统一：difficulty 容易/适中/困难、主题只写叶子、主类 27；check_tags / check_text 增加 --batch 上传前模式", "target": "SKILL.md"}

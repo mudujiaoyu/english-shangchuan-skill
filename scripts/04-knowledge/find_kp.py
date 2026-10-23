@@ -41,7 +41,11 @@ def main():
     if a.list_branches:
         from collections import Counter
         c = Counter(p["path"].split("/")[0] for p in pts)
-        print(f"{data['version_label']}（{data['version_id']}），{data['count']} 个节点")
+        # 目录 1.0 的键是 version_label / version_id / count；1.1 换成了 version / versionId，
+        # 两种都认，别再让 --list-branches 直接 KeyError 崩掉。
+        label = data.get("version_label") or data.get("version") or "(unknown)"
+        vid = data.get("version_id") or data.get("versionId") or "(no id)"
+        print(f"{label}（{vid}），{data.get('count') or len(pts)} 个节点")
         for k, v in c.most_common():
             print(f"  {k}: {v}")
         return 0

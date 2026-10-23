@@ -1,24 +1,46 @@
 # 源卷解析（01-extract）
 
 **输入**：原卷文件（docx 优先；只有 PDF 时才走 PDF 分支）+ 同一份卷的答案/解析。
-**输出**：`01_source/`
+**输出**：`01_source/`，答案册另出 `01_source_ans/answers.json`
 
 ```
 01_source/
-  正文.txt          带 [TABLE n] 标记的正文
+  正文.txt          带 [TABLE n] / [IMG imageN.xxx] 标记的正文
   media/            内嵌图片，按文档顺序
   structure.json    本卷结构清单（见下）
+01_source_ans/
+  answers.json      答案册抽出的「题号 → 答案」表（供 ⑥ check_answers 比对）
 ```
 
 ## 1.1 docx 提取
 
 ```bash
-python scripts/extract_docx.py "原卷.docx" 01_source/
+python scripts/01-extract/extract_docx.py "原卷.docx" 01_source/
+python scripts/01-extract/contact_sheet.py 01_source/media/ --out 01_source/contact_sheet.png
+python scripts/01-extract/extract_answers.py --docx 答案.docx --year 2025 --out 01_source_ans/answers.json
 ```
 
 - `.doc` 老格式先转：Word COM `SaveAs2($dst, 12)`（不要用 `SaveAs([ref]…)`）。
 - 表格必须逐行导出，不能只留文字（信息转换题要用）。
+- **图片在正文里留 `[IMG image5.jpeg]` 位置标记**（图在所在段落之后单独一行）。只给 `media/` 目录时，
+  「哪张图属于哪道题」只能靠序号反推，每年都要重认起点；有了标记，正文里就能直接看到图落在哪个题号之间。
+  例：阅读 A 的目录整图出现在题干之前，四张选项图紧跟在 `A. B. C. D.` 之后。
+- `media/` 数量 > 标记数量是正常的：页眉 logo、未被正文引用的占位图没有标记，脚本会提示差额。
+- 用 `contact_sheet.py` 把图拼成缩略图清单，逐张确认「页眉 logo / 二维码 / 栏目角标 / 装饰图」不算选项图。
 - 图片在 `word/media/`，文件名数字即文档顺序；先过滤目录条目（`endswith("/")`）。
+
+## 1.2 答案册
+
+```bash
+python scripts/01-extract/extract_answers.py --docx 答案.docx --year 2025 --out 01_source_ans/answers.json
+python scripts/01-extract/extract_answers.py --txt 答案.txt --year 2020 --out answers.json   # PDF/OCR 走这条
+```
+
+认两种形态：`题号 | 1~5 | 6~10` + `答案 | CBCAC | BBAAC` 的表格式，以及 `1~5 CBCAC`、`21.C　【解析】…`、
+`16.Silence/silence　17.Smile` 的行内式；`【解析】` 之后不取，遇到「听力录音材料」即停。
+产出 `{"numbers": {"1": "C", …}, "subjective": [73, 74, 75], "conflicts": [...]}`。
+
+**不要手抄答案表**：抄错一次（2019 第 19、20 题填反）就得整批返工；机器抽表 + `check_answers.py` 双来源比对才拦得住。
 
 ## 1.2 PDF（无文字层）
 
@@ -71,5 +93,6 @@ stem = re.sub(r"([A-Za-z])\s*______", r"\1 ______", stem)   # 补空格
 
 - [ ] 正文行数与该卷题量对得上（缺题=漏段）
 - [ ] 表格全部以 `[TABLE n]` 或 `materialBlocks` 保留
-- [ ] 图片题的位置、张数确认过（起点不许沿用上一年的范围）
+- [ ] 图片题的位置、张数确认过（先看 `[IMG]` 标记落在哪两题之间，再看 `contact_sheet.png`）
+- [ ] `answers.json` 题号覆盖完整（`extract_answers.py` 会打印缺号），无 conflicts
 - [ ] `structure.json` 每道题都能落到某个大题

@@ -86,9 +86,22 @@ print(json.dumps(rows, ensure_ascii=False))
     return json.loads(out.stdout)
 
 
+def fetch_batch(path):
+    """直接体检待上传的批次文件（确认之前也能查）。"""
+    batch = json.load(open(path, encoding="utf-8-sig"))
+    rows = []
+    for it in batch.get("items") or []:
+        rows.append([it.get("id"), it.get("type"),
+                     json.dumps(it.get("knowledge") or [], ensure_ascii=False),
+                     json.dumps(it.get("knowledge_ids") or [], ensure_ascii=False),
+                     json.dumps(it.get("subquestions") or [], ensure_ascii=False)])
+    return rows
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--ids", default="")
+    ap.add_argument("--batch", default="", help="直接查批次 json（上传前用）")
     ap.add_argument("--strict", action="store_true",
                     help="越界维度也算失败（默认只报告，因为历史数据按旧规则打过标）")
     a = ap.parse_args()
@@ -119,7 +132,7 @@ def main():
         scopes[qt] = scoped
     # 情景反应的应答语题挂在听力其他下，表里没有对应维度，放行语用
     allowed.setdefault("听力其他", set()).add("语用")
-    rows = fetch(prefix)
+    rows = fetch_batch(a.batch) if a.batch else fetch(prefix)
     empty, forbidden, coarse = [], [], defaultdict(list)
     out_of_scope = []
     for uid, qtype, kj, kid, sj in rows:
@@ -146,7 +159,8 @@ def main():
             if p in internal and p not in ALLOWED_INTERNAL:
                 coarse[p].append(f"{uid}[{qtype}]")
 
-    print(f"扫描 {len(rows)} 个单元（前缀：{prefix or '全库'}）")
+    where = a.batch or prefix or "全库"
+    print(f"扫描 {len(rows)} 个单元（{'批次' if a.batch else '前缀'}：{where}）")
     print(f"空标签 {len(empty)} | 禁标维度 {len(forbidden)} | 越界维度 {len(out_of_scope)} "
           f"| 非叶子标签 {sum(len(v) for v in coarse.values())}")
     if out_of_scope:

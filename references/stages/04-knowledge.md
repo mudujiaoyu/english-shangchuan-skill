@@ -53,31 +53,34 @@
 
 要点：
 
-- 主题写「一级主题 + 最后一级」两段，中间层不写。
+- 主题写**最后一级叶子**（一级主题不落库——它是父节点，`check_tags.py` 判「非叶子」）。
 - 语篇体裁、词汇、语法、语音写根以下各级（如「记叙文 / 故事」「词汇辨析 / 动词辨析」）。
 - 语用只写叶子。
-- 阅读类设题角度写「阅读技能」叶子；听力暂无对应分支，先不落标。
+- 阅读类设题角度写 `设题角度/阅读/*`；听力类写 `设题角度/听力/*`。
 - 填空、拼写、完成句子、选词：另加**答案考点**（该空考的词汇/语法叶子）。
 
 ## 4.4 子题
 
 - 组级 = 该组考的能力；子题 = 各自精确考点。
-- **每个阅读小题必须有一个 `阅读技能/*`**，按设问判（best title→最佳标题、infer→推理判断）。
+- **每个阅读小题必须有一个 `设题角度/阅读/*`**，按设问判（best title→最佳标题、infer→推理判断）。
+- 完形/选词的空在材料里，子题 stem 从句中截含该空号的句子；截出来带单边引号的，把不成对的引号去掉。
 
 ## 4.5 工具
 
 ```bash
 python scripts/find_kp.py 被动语态                       # 查节点，别凭记忆写路径
+python scripts/find_kp.py --list-branches                # 看分支与节点数
 python scripts/apply_type_tags.py --batch b.json --out b2.json   # 按题型补默认
 python scripts/fill_subtags.py --ids AH-2022 --list      # 找空子题
 python scripts/spell_pos.py --list                       # 拼写题列答案
-python scripts/check_tags.py --ids AH-2022               # 体检
+python scripts/check_tags.py --ids AH-2022               # 体检（读库）
+python scripts/check_tags.py --batch 06_batch/b.json     # 体检（上传前，不读库）
 python scripts/04-knowledge/assign_angle.py --ids AH-2022 --apply   # 补听力设题角度
 ```
 
 ## 验收
 
-- [ ] 每题都有 `answer`，与答案卷逐题一致（不一致数必须 0）
+- [ ] 每题都有 `answer`，与答案卷逐题一致（`check_answers.py` 比对 answers.json，不一致数必须 0）
 - [ ] `explanation` 无前缀、无编造
 - [ ] `check_tags.py` 退出码 0（无空标签/禁标/未下钻）
-- [ ] 每个阅读子题都有 `阅读技能/*`
+- [ ] 每个阅读子题都有 `设题角度/阅读/*`

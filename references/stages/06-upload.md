@@ -18,9 +18,15 @@
 
 ## 6.2 自检（脚本化，别靠眼睛）
 
+```bash
+python scripts/06-upload/check_answers.py --batch b.json --answers 01_source_ans/answers.json
+python scripts/06-upload/check_text.py --batch b.json
+python scripts/04-knowledge/check_tags.py --batch b.json
+```
+
 - [ ] ID 唯一、格式统一
-- [ ] 答案与答案卷逐题一致（不一致数 0）
-- [ ] 题型在 26 主类内、子类在框架内
+- [ ] 答案与答案卷逐题一致（`check_answers.py` 退出码 0，客观题不一致数 0）
+- [ ] 题型在 27 主类内、子类在框架内
 - [ ] `knowledge` 能解析成 ID（服务端只认名称或 ID，路径会 409）
 - [ ] 附件 `placement` 只能是 `question/option/answer/explanation`
 - [ ] 体积 < 2 MB
@@ -95,6 +101,11 @@ python scripts/06-upload/publish_check.py --batch b.json
 | --- | --- | --- |
 | `incomplete_group_unit` | group 题没有 `material` 或没有子题 | 听力组无印刷材料时写占位 `（听力材料见音频）` |
 | `incomplete_group_subquestions` | 有子题缺 `stem` 或 `answer` | 完形/补全对话的空在材料里，子题 stem 从材料截含 `__N__` 的句子，截不到写「第N空」 |
+
+**截句做子题 stem 的两个坑**：
+1. 从句中截取会带出**单边引号**（`“We’ve seen a growing　42　in learning Chinese.`），
+   `check_text.py --batch` 会报「引号不配对」。截完把不成对的引号去掉，别留着。
+2. 空档标记写成 `__31__` 时会被「下划线过短」误报；`check_text.py` 已把 `__数字__` 先统一按 6 个下划线处理。
 
 **解析不阻断发布**：原卷/答案册有解析就跟着录入，没有就留空，不编造。`publish_check.py`
 会把「解析为空」单独统计成提示，不算阻断项。

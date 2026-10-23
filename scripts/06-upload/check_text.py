@@ -65,15 +65,32 @@ print(json.dumps(rows, ensure_ascii=False))
     return json.loads(out.stdout)
 
 
+def fetch_batch(path):
+    """直接扫批次 json（确认之前也能查排版）。"""
+    batch = json.load(open(path, encoding="utf-8-sig"))
+    rows = []
+    for it in batch.get("items") or []:
+        rows.append([it.get("id"), it.get("type"), it.get("stem") or "",
+                     json.dumps(it.get("options") or [], ensure_ascii=False),
+                     json.dumps(it.get("subquestions") or [], ensure_ascii=False)])
+    return rows
+
+
+def mask_numbered_blanks(text):
+    """`__31__` 是「第 31 空」的标记，不是过短下划线，先统一成 6 个下划线再体检。"""
+    return re.sub(r"_{2,}\s*(\d{1,3})\s*_{2,}", "______", text)
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--ids", default="")
+    ap.add_argument("--batch", default="", help="直接扫批次 json（上传前用）")
     ap.add_argument("--json", action="store_true")
     ap.add_argument("--limit", type=int, default=6)
     ap.add_argument("--strict", action="store_true")
     a = ap.parse_args()
 
-    rows = fetch(a.ids)
+    rows = fetch_batch(a.batch) if a.batch else fetch(a.ids)
     hits = defaultdict(list)
     texts = 0
     for uid, qt, stem, opts, sj in rows:
@@ -90,8 +107,9 @@ def main():
             if not text:
                 continue
             texts += 1
+            probe = mask_numbered_blanks(text)
             for name, fn in RULES:
-                if fn(text):
+                if fn(probe):
                     hits[name].append((uid, qt, where, text[:70]))
 
     total = sum(len(v) for v in hits.values())
