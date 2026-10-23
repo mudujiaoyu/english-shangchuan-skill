@@ -5,6 +5,7 @@
     python scripts/verify_package.py --run
 """
 import argparse
+import io
 import json
 import os
 import subprocess
@@ -13,6 +14,12 @@ import sys
 sys.stdout.reconfigure(encoding="utf-8")
 HERE = os.path.dirname(os.path.abspath(__file__))
 SKILL = os.path.dirname(HERE)
+
+# 约束总表：所有阶段文档都应指向它，避免规则四处散落
+CONSTRAINTS = "references/constraints.md"
+STAGE_DOCS_TO_LINK = ["references/stages/01-extract.md", "references/stages/02-audio.md",
+                      "references/stages/03-type-map.md", "references/stages/04-knowledge.md",
+                      "references/stages/05-meta.md", "references/stages/06-upload.md"]
 
 STAGES = [
     ("01-extract", "01-extract", ["extract_docx.py", "extract_answers.py", "contact_sheet.py",
@@ -29,7 +36,8 @@ STAGES = [
 ]
 REFS = ["structure.md", "pdf-extraction.md", "audio-splitting.md", "type-subtypes.md",
         "knowledge-tagging.md", "knowledge-matching-rules.md", "knowledge-catalog.json",
-        "type-knowledge-map.json", "difficulty-category.json", "upload-api.md"]
+        "type-knowledge-map.json", "difficulty-category.json", "upload-api.md",
+        "constraints.md"]
 
 
 def frontmatter(path):
@@ -104,6 +112,21 @@ def main():
         print(f"  {r:28s} {'✓' if ok else '✗'}")
         if not ok:
             fails += 1
+
+    # 约束总表必须存在，且各阶段文档都要指向它（防止规则又散回各处）
+    print("\n约束总表")
+    cp = os.path.join(SKILL, CONSTRAINTS)
+    ok = os.path.exists(cp)
+    print(f"  {CONSTRAINTS:34s} {'✓' if ok else '✗'}")
+    if not ok:
+        fails += 1
+    else:
+        for doc in STAGE_DOCS_TO_LINK:
+            dp = os.path.join(SKILL, doc)
+            linked = os.path.exists(dp) and "constraints.md" in io.open(dp, encoding="utf-8").read()
+            print(f"    {os.path.basename(doc):16s} 指向总表 {'✓' if linked else '✗'}")
+            if not linked:
+                fails += 1
 
     print("\n脚本")
     for slug, d, scripts in STAGES:

@@ -1,5 +1,7 @@
 # 答案与知识点（04-knowledge）
 
+> 本阶段涉及的硬约束见 `references/constraints.md`（A 服务端 / B 文本格式 / C 题型知识点 / D 粒度编号 / E 媒体 / F 内容真实性 / G 输入源）。
+
 **输入**：原卷 + 参考答案 + `03_types/types.json`。
 **输出**：`04_knowledge/knowledge.json`
 

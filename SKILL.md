@@ -38,6 +38,22 @@ metadata:
 
 **上游缺字段就停下来问，不要自行补造。**
 
+## 录题约束总表（动手前先看）
+
+⚠️ **所有「违反就出错」的约束都收在 `references/constraints.md`**，共 57 条分七段：
+
+| 段 | 内容 | 典型后果 |
+| --- | --- | --- |
+| A 服务端硬约束 | 附件层级、子类取值、组题完整性、**`unit_kind` 不可改**、PATCH 整体替换、harness 读不到草稿 | 静默 400 / 阻断发布 / 只能人工删草稿重传 |
+| B 文本与格式 | 空档一律 `______`、首字母紧贴、引号配对、破折号空格 | 页面看不见横线 / 体检报警 |
+| C 题型与知识点 | 27 主类不可增改、主题只写叶子、语音题按题型基准 | 标签越界、筛选查不到 |
+| D 粒度与编号 | 真题按小题、练习册按大题；组题子题不重复标号；ID 段位 | 粒度定错改不了 |
+| E 媒体 | 选项图层级、装饰图不挂、整图材料只写「见附图」 | 图不显示且不报错 |
+| F 内容真实性 | 答案只认原卷、不编造解析 | 抄错答案 |
+| G 输入源特有 | 合并卷按年切分与图片归属、答案册必须给年份、听力只回读首 N 秒、防中文题头 | 答案是混的 / 图串年份 / 白等 |
+
+新增约束先补进总表，再在各阶段文档写「怎么做」。
+
 ## 六步要点
 
 ### ① 解析
@@ -100,6 +116,8 @@ python $S/06-upload/preflight_check.py --batch b.json --insert
 python $S/06-upload/publish_check.py --ids AH-2022
 python $S/06-upload/check_text.py --ids AH-2022
 python $S/06-upload/check_text.py --batch 06_batch/batch.json          # 上传前查
+python $S/06-upload/check_structure.py --batch 06_batch/batch.json     # 上传前查结构
+python $S/06-upload/check_structure.py --ids RJ8A
 python $S/06-upload/run_upload.py --batch b.json --media-dir media_upload/ --answers answers.json
 ```
 
@@ -138,3 +156,5 @@ python ~/.agents/skills/mudu-question-upload/sync_skill.py                # 仓�
 - 答案以原卷为准，不编造解析。
 - 上传前必须过查重与预检两道闸门。
 - 按年份切换试卷时，不要沿用上一年的题号范围来定位图片。
+- **单元粒度建批前必须确认**：`unit_kind` 入库后改不了，删除要人工。接新册别先问「一单元 = 一道题还是一道大题」。
+- **保留上传时的批次文件**：harness 读不到草稿（`GET` 返 404），批次同时是上传凭证与改稿时的唯一现状来源。

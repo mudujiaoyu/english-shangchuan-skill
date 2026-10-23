@@ -1,5 +1,7 @@
 # 源卷解析（01-extract）
 
+> 本阶段涉及的硬约束见 `references/constraints.md`（A 服务端 / B 文本格式 / C 题型知识点 / D 粒度编号 / E 媒体 / F 内容真实性 / G 输入源）。
+
 **输入**：原卷文件（docx 优先；只有 PDF 时才走 PDF 分支）+ 同一份卷的答案/解析。
 **输出**：`01_source/`，答案册另出 `01_source_ans/answers.json`
 

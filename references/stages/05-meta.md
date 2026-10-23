@@ -1,5 +1,7 @@
 # 难度与分类（05-meta）
 
+> 本阶段涉及的硬约束见 `references/constraints.md`（A 服务端 / B 文本格式 / C 题型知识点 / D 粒度编号 / E 媒体 / F 内容真实性 / G 输入源）。
+
 **输入**：`04_knowledge/knowledge.json`（要用到知识点标签）+ 听力稿或音频时长。
 **输出**：`05_meta/meta.json`
 

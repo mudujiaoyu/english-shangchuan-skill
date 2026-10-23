@@ -1,5 +1,7 @@
 # 题型与子类（03-type-map）
 
+> 本阶段涉及的硬约束见 `references/constraints.md`（A 服务端 / B 文本格式 / C 题型知识点 / D 粒度编号 / E 媒体 / F 内容真实性 / G 输入源）。
+
 **输入**：`01_source/structure.json` + 原卷。
 **输出**：`03_types/types.json`
 

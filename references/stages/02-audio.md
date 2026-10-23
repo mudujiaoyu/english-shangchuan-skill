@@ -1,5 +1,7 @@
 # 听力切分（02-audio）
 
+> 本阶段涉及的硬约束见 `references/constraints.md`（A 服务端 / B 文本格式 / C 题型知识点 / D 粒度编号 / E 媒体 / F 内容真实性 / G 输入源）。
+
 **输入**：整卷 mp3 + （可选）听力稿。
 **输出**：`02_audio/`：`li-01.mp3 …` + `audio_map.json`。
 
