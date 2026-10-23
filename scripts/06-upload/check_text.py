@@ -112,10 +112,12 @@ def main():
                 if fn(probe):
                     hits[name].append((uid, qt, where, text[:70]))
 
-    # 完形/选词：子题必须 4 个选项、题干非空
+    # 完形填空：子题必须 4 个选项、题干非空。
+    # 选词填空 / 短文填空 / 教材语篇填空 是**填空类**，子题本来就没有选项，
+    # 把它们算进来会报一堆「0 个选项」假阳性（2026-10-23 课时册实测 34 处）。
     cloze_bad = []
     for uid, qt, stem, opts, sj in rows:
-        if qt not in ("完形填空", "选词填空", "短文填空", "教材语篇填空"):
+        if qt != "完形填空":
             continue
         for s in json.loads(sj or "[]"):
             o = s.get("options") or []
