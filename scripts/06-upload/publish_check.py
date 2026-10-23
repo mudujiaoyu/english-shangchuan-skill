@@ -56,8 +56,9 @@ def fetch(prefix):
 import sqlite3, json
 con = sqlite3.connect("file:/home/ubuntu/mudu-quiz/data/mudu.sqlite3?mode=ro", uri=True)
 rows = [list(r) for r in con.execute(
-  "select unit_id, stem, answer, explanation, question_type, knowledge_json, filter_metadata_json "
-  "from questions where unit_id like '{prefix}%'")]
+  "select questions.unit_id, stem, answer, explanation, question_type, knowledge_json, filter_metadata_json, "
+  "unit_kind, material, subquestions_json from questions join question_units "
+  "on question_units.id = questions.unit_id where unit_id like '{prefix}%'")]
 print(json.dumps(rows, ensure_ascii=False))
 '''
     r = subprocess.run(["ssh", "-i", SSH_KEY, "-o", "IdentitiesOnly=yes", "-o", "BatchMode=yes",
@@ -83,16 +84,18 @@ def main():
     if a.batch:
         items = json.load(open(a.batch, encoding="utf-8-sig"))["items"]
         units = [(i.get("id"), i.get("stem"), i.get("answer"), i.get("explanation"),
-                  i.get("type"), i.get("knowledge"), (i.get("filterMetadata") or {})) for i in items]
+                  i.get("type"), i.get("knowledge"), (i.get("filterMetadata") or {}),
+                  i.get("unit_kind") or i.get("unitKind") or "standalone",
+                  i.get("material") or "", i.get("subquestions") or []) for i in items]
     elif a.ids:
-        units = [(u, s, ans, e, t, json.loads(kj or "[]"), json.loads(fm or "{}"))
-                 for u, s, ans, e, t, kj, fm in fetch(a.ids)]
+        units = [(u, s, ans, e, t, json.loads(kj or "[]"), json.loads(fm or "{}"), kind, mat, json.loads(sj or "[]"))
+                 for u, s, ans, e, t, kj, fm, kind, mat, sj in fetch(a.ids)]
     else:
         ap.error("需要 --ids 或 --batch")
 
     blockers, rows, no_explanation = {}, [], []
     blank_spaces = []
-    for uid, stem, ans, exp, qtype, knowledge, fm in units:
+    for uid, stem, ans, exp, qtype, knowledge, fm, kind, material, subs_q in units:
         b = []
         if not (stem or "").strip():
             b.append("missing_stem")
@@ -108,6 +111,15 @@ def main():
             b.append("invalid_type")
         if not knowledge:
             b.append("missing_knowledge")
+        # 组题：材料与子题完整性（与服务端 publish_blockers 一致）
+        if kind == "group":
+            if not (material or "").strip() or not subs_q:
+                b.append("incomplete_group_unit")
+            else:
+                bad_subs = [q for q in subs_q if isinstance(q, dict)
+                            and (not (q.get("stem") or "").strip() or not (q.get("answer") or "").strip())]
+                if bad_subs:
+                    b.append("incomplete_group_subquestions")
         subs = fm.get("subtypes") or []
         if with_sub.get(qtype) and not subs:
             b.append("missing_subtype")

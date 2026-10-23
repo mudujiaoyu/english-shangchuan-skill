@@ -89,6 +89,13 @@ python scripts/06-upload/publish_check.py --batch b.json
 该脚本区分「真缺子类」和「该主类本就没有子类」：`听力其他`、`听力短文理解`、`听力信息转换`
 在框架里没有子类，`subtypes` 留空是正常的，不算缺陷。
 
+组题还有两条硬要求：
+
+| 阻断码 | 含义 | 常见修法 |
+| --- | --- | --- |
+| `incomplete_group_unit` | group 题没有 `material` 或没有子题 | 听力组无印刷材料时写占位 `（听力材料见音频）` |
+| `incomplete_group_subquestions` | 有子题缺 `stem` 或 `answer` | 完形/补全对话的空在材料里，子题 stem 从材料截含 `__N__` 的句子，截不到写「第N空」 |
+
 **解析不阻断发布**：原卷/答案册有解析就跟着录入，没有就留空，不编造。`publish_check.py`
 会把「解析为空」单独统计成提示，不算阻断项。
 
